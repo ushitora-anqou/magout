@@ -43,6 +43,10 @@ help: ## Display this help.
 
 ##@ Development
 
+.PHONY: check-uncommitted
+check-uncommitted: generate ## Check if latest generated artifacts are committed.
+	git diff --exit-code --name-only
+
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
@@ -161,6 +165,3 @@ mv $(1) $(1)-$(3) ;\
 ln -sf $(1)-$(3) $(1)
 endef
 
-.PHONY: check-uncommitted
-check-uncommitted: generate ## Check if latest generated artifacts are committed.
-	git diff --exit-code --name-only
