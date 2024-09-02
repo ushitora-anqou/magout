@@ -1,0 +1,9 @@
+apiVersion: magout.anqou.net/v1
+kind: Mastodon
+metadata:
+  labels:
+    app.kubernetes.io/name: magout
+    app.kubernetes.io/managed-by: kustomize
+  name: mastodon-sample
+spec:
+  # TODO(user): Add fields here
