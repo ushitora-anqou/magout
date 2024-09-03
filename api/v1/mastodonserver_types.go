@@ -1,19 +1,61 @@
 package v1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+type PeriodicRestartSpec struct {
+	Schedule string `json:"schedule,omitempty"`
+}
+
+type MastodonServerSidekiqSpec struct {
+	Image           string                       `json:"image"`
+	EnvFrom         []corev1.EnvFromSource       `json:"envFrom,omitempty"`
+	Labels          map[string]string            `json:"labels,omitempty"`
+	Annotations     map[string]string            `json:"annotations,omitempty"`
+	PeriodicRestart *PeriodicRestartSpec         `json:"periodicRestart,omitempty"`
+	Resources       *corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// +kubebuilder:default=1
+	Replicas int `json:"replicas,omitempty"`
+}
+
+type MastodonServerStreamingSpec struct {
+	Image           string                       `json:"image"`
+	EnvFrom         []corev1.EnvFromSource       `json:"envFrom,omitempty"`
+	Labels          map[string]string            `json:"labels,omitempty"`
+	Annotations     map[string]string            `json:"annotations,omitempty"`
+	PeriodicRestart *PeriodicRestartSpec         `json:"periodicRestart,omitempty"`
+	Resources       *corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// +kubebuilder:default=1
+	Replicas int `json:"replicas,omitempty"`
+}
+
+type MastodonServerWebSpec struct {
+	Image           string                       `json:"image"`
+	EnvFrom         []corev1.EnvFromSource       `json:"envFrom,omitempty"`
+	Labels          map[string]string            `json:"labels,omitempty"`
+	Annotations     map[string]string            `json:"annotations,omitempty"`
+	PeriodicRestart *PeriodicRestartSpec         `json:"periodicRestart,omitempty"`
+	Resources       *corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// +kubebuilder:default=1
+	Replicas int `json:"replicas,omitempty"`
+}
+
 // MastodonServerSpec defines the desired state of MastodonServer
 type MastodonServerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of MastodonServer. Edit mastodon_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Web       MastodonServerWebSpec       `json:"web"`
+	Streaming MastodonServerStreamingSpec `json:"streaming"`
+	Sidekiq   MastodonServerSidekiqSpec   `json:"sidekiq"`
 }
 
 // MastodonServerStatus defines the observed state of MastodonServer
