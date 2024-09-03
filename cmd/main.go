@@ -19,8 +19,8 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	magoutanqounetv1 "magout.anqou.net/magout/api/v1"
-	"magout.anqou.net/magout/internal/controller"
+	magoutv1 "github.com/ushitora-anqou/magout/api/v1"
+	"github.com/ushitora-anqou/magout/internal/controller"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -32,7 +32,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(magoutanqounetv1.AddToScheme(scheme))
+	utilruntime.Must(magoutv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 

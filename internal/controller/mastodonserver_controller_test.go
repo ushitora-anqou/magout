@@ -11,7 +11,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	magoutanqounetv1 "magout.anqou.net/magout/api/v1"
+	magoutv1 "github.com/ushitora-anqou/magout/api/v1"
 )
 
 var _ = Describe("MastodonServer Controller", func() {
@@ -24,13 +24,13 @@ var _ = Describe("MastodonServer Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		mastodonserver := &magoutanqounetv1.MastodonServer{}
+		mastodonserver := &magoutv1.MastodonServer{}
 
 		BeforeEach(func() {
 			By("creating the custom resource for the Kind MastodonServer")
 			err := k8sClient.Get(ctx, typeNamespacedName, mastodonserver)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &magoutanqounetv1.MastodonServer{
+				resource := &magoutv1.MastodonServer{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
@@ -43,7 +43,7 @@ var _ = Describe("MastodonServer Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &magoutanqounetv1.MastodonServer{}
+			resource := &magoutv1.MastodonServer{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 

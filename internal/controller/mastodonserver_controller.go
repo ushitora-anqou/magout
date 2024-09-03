@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	magoutanqounetv1 "magout.anqou.net/magout/api/v1"
+	magoutv1 "github.com/ushitora-anqou/magout/api/v1"
 )
 
 // MastodonServerReconciler reconciles a MastodonServer object
@@ -41,6 +41,6 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 // SetupWithManager sets up the controller with the Manager.
 func (r *MastodonServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&magoutanqounetv1.MastodonServer{}).
+		For(&magoutv1.MastodonServer{}).
 		Complete(r)
 }
