@@ -27,3 +27,4 @@ go.work
 *~
 
 test/e2e/bin
+config/
