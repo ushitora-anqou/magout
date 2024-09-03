@@ -2,14 +2,25 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	magoutv1 "github.com/ushitora-anqou/magout/api/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+const (
+	prefix              = "magout.anqou.net/"
+	labelMastodonServer = prefix + "mastodon-server"
+	labelDeployImage    = prefix + "deploy-image"
 )
 
 // MastodonServerReconciler reconciles a MastodonServer object
@@ -46,6 +57,10 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, err
 	}
 
+	if err := r.createOrUpdateDeployments(ctx, &server); err != nil {
+		return ctrl.Result{}, err
+	}
+
 	return ctrl.Result{}, nil
 }
 
@@ -54,4 +69,74 @@ func (r *MastodonServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&magoutv1.MastodonServer{}).
 		Complete(r)
+}
+
+func (r *MastodonServerReconciler) createOrUpdateDeployments(
+	ctx context.Context,
+	server *magoutv1.MastodonServer,
+) error {
+	if err := r.createOrUpdateSidekiqDeployment(ctx, server); err != nil {
+		return fmt.Errorf("failed to create or update sidekiq deployment: %w", err)
+	}
+	return nil
+}
+
+func (r *MastodonServerReconciler) createOrUpdateSidekiqDeployment(
+	ctx context.Context,
+	server *magoutv1.MastodonServer,
+) error {
+	logger := log.FromContext(ctx)
+	spec := server.Spec.Sidekiq
+
+	var deploy appsv1.Deployment
+	deploy.SetName(fmt.Sprintf("%s-sidekiq", server.GetName()))
+	deploy.SetNamespace(server.GetNamespace())
+
+	result, err := ctrl.CreateOrUpdate(ctx, r.client, &deploy, func() error {
+		deploy.SetAnnotations(spec.Annotations)
+
+		selector := map[string]string{
+			"app.kubernetes.io/name":      "sidekiq",
+			"app.kubernetes.io/component": "sidekiq",
+			"app.kubernetes.io/part-of":   "mastodon",
+		}
+		deploy.Spec.Selector = &metav1.LabelSelector{
+			MatchLabels: selector,
+		}
+
+		labels := map[string]string{
+			labelMastodonServer: server.GetName(),
+			labelDeployImage:    "", // FIXME
+		}
+		for k, v := range selector {
+			labels[k] = v
+		}
+		for k, v := range spec.Labels {
+			labels[k] = v
+		}
+		deploy.SetLabels(labels)
+
+		deploy.Spec.Replicas = &spec.Replicas
+		deploy.Spec.Template.Spec.Containers = []corev1.Container{
+			{
+				Name:      "sidekiq",
+				Image:     spec.Image,
+				Resources: spec.Resources,
+				Command:   []string{"bash", "-c", "bundle exec sidekiq"},
+			},
+		}
+		return ctrl.SetControllerReference(server, &deploy, r.Scheme)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create or update: %w", err)
+	}
+	if result != controllerutil.OperationResultNone {
+		logger.Info(
+			"create sidekiq deployment successfully",
+			"name", deploy.GetName(),
+			"namespace", deploy.GetNamespace(),
+		)
+	}
+
+	return nil
 }

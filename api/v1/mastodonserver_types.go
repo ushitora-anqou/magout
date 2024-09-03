@@ -13,39 +13,39 @@ type PeriodicRestartSpec struct {
 }
 
 type MastodonServerSidekiqSpec struct {
-	Image           string                       `json:"image"`
-	EnvFrom         []corev1.EnvFromSource       `json:"envFrom,omitempty"`
-	Labels          map[string]string            `json:"labels,omitempty"`
-	Annotations     map[string]string            `json:"annotations,omitempty"`
-	PeriodicRestart *PeriodicRestartSpec         `json:"periodicRestart,omitempty"`
-	Resources       *corev1.ResourceRequirements `json:"resources,omitempty"`
+	Image           string                      `json:"image"`
+	EnvFrom         []corev1.EnvFromSource      `json:"envFrom,omitempty"`
+	Labels          map[string]string           `json:"labels,omitempty"`
+	Annotations     map[string]string           `json:"annotations,omitempty"`
+	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
+	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
 
 	// +kubebuilder:default=1
-	Replicas int `json:"replicas,omitempty"`
+	Replicas int32 `json:"replicas,omitempty"`
 }
 
 type MastodonServerStreamingSpec struct {
-	Image           string                       `json:"image"`
-	EnvFrom         []corev1.EnvFromSource       `json:"envFrom,omitempty"`
-	Labels          map[string]string            `json:"labels,omitempty"`
-	Annotations     map[string]string            `json:"annotations,omitempty"`
-	PeriodicRestart *PeriodicRestartSpec         `json:"periodicRestart,omitempty"`
-	Resources       *corev1.ResourceRequirements `json:"resources,omitempty"`
+	Image           string                      `json:"image"`
+	EnvFrom         []corev1.EnvFromSource      `json:"envFrom,omitempty"`
+	Labels          map[string]string           `json:"labels,omitempty"`
+	Annotations     map[string]string           `json:"annotations,omitempty"`
+	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
+	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
 
 	// +kubebuilder:default=1
-	Replicas int `json:"replicas,omitempty"`
+	Replicas int32 `json:"replicas,omitempty"`
 }
 
 type MastodonServerWebSpec struct {
-	Image           string                       `json:"image"`
-	EnvFrom         []corev1.EnvFromSource       `json:"envFrom,omitempty"`
-	Labels          map[string]string            `json:"labels,omitempty"`
-	Annotations     map[string]string            `json:"annotations,omitempty"`
-	PeriodicRestart *PeriodicRestartSpec         `json:"periodicRestart,omitempty"`
-	Resources       *corev1.ResourceRequirements `json:"resources,omitempty"`
+	Image           string                      `json:"image"`
+	EnvFrom         []corev1.EnvFromSource      `json:"envFrom,omitempty"`
+	Labels          map[string]string           `json:"labels,omitempty"`
+	Annotations     map[string]string           `json:"annotations,omitempty"`
+	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
+	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
 
 	// +kubebuilder:default=1
-	Replicas int `json:"replicas,omitempty"`
+	Replicas int32 `json:"replicas,omitempty"`
 }
 
 // MastodonServerSpec defines the desired state of MastodonServer
