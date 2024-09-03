@@ -128,11 +128,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controller.MastodonReconciler{
+	if err = (&controller.MastodonServerReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Mastodon")
+		setupLog.Error(err, "unable to create controller", "controller", "MastodonServer")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

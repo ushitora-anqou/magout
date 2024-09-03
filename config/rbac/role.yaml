@@ -7,7 +7,7 @@ rules:
 - apiGroups:
   - magout.anqou.net
   resources:
-  - mastodons
+  - mastodonservers
   verbs:
   - create
   - delete
@@ -19,13 +19,13 @@ rules:
 - apiGroups:
   - magout.anqou.net
   resources:
-  - mastodons/finalizers
+  - mastodonservers/finalizers
   verbs:
   - update
 - apiGroups:
   - magout.anqou.net
   resources:
-  - mastodons/status
+  - mastodonservers/status
   verbs:
   - get
   - patch

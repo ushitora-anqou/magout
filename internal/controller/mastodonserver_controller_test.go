@@ -14,7 +14,7 @@ import (
 	magoutanqounetv1 "magout.anqou.net/magout/api/v1"
 )
 
-var _ = Describe("Mastodon Controller", func() {
+var _ = Describe("MastodonServer Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-resource"
 
@@ -24,13 +24,13 @@ var _ = Describe("Mastodon Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		mastodon := &magoutanqounetv1.Mastodon{}
+		mastodonserver := &magoutanqounetv1.MastodonServer{}
 
 		BeforeEach(func() {
-			By("creating the custom resource for the Kind Mastodon")
-			err := k8sClient.Get(ctx, typeNamespacedName, mastodon)
+			By("creating the custom resource for the Kind MastodonServer")
+			err := k8sClient.Get(ctx, typeNamespacedName, mastodonserver)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &magoutanqounetv1.Mastodon{
+				resource := &magoutanqounetv1.MastodonServer{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
@@ -43,16 +43,16 @@ var _ = Describe("Mastodon Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &magoutanqounetv1.Mastodon{}
+			resource := &magoutanqounetv1.MastodonServer{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 
-			By("Cleanup the specific resource instance Mastodon")
+			By("Cleanup the specific resource instance MastodonServer")
 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
-			controllerReconciler := &MastodonReconciler{
+			controllerReconciler := &MastodonServerReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}

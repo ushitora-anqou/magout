@@ -7,17 +7,17 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// MastodonSpec defines the desired state of Mastodon
-type MastodonSpec struct {
+// MastodonServerSpec defines the desired state of MastodonServer
+type MastodonServerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Mastodon. Edit mastodon_types.go to remove/update
+	// Foo is an example field of MastodonServer. Edit mastodon_types.go to remove/update
 	Foo string `json:"foo,omitempty"`
 }
 
-// MastodonStatus defines the observed state of Mastodon
-type MastodonStatus struct {
+// MastodonServerStatus defines the observed state of MastodonServer
+type MastodonServerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -25,24 +25,24 @@ type MastodonStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// Mastodon is the Schema for the mastodons API
-type Mastodon struct {
+// MastodonServer is the Schema for the mastodons API
+type MastodonServer struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   MastodonSpec   `json:"spec,omitempty"`
-	Status MastodonStatus `json:"status,omitempty"`
+	Spec   MastodonServerSpec   `json:"spec,omitempty"`
+	Status MastodonServerStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// MastodonList contains a list of Mastodon
-type MastodonList struct {
+// MastodonServerList contains a list of MastodonServer
+type MastodonServerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Mastodon `json:"items"`
+	Items           []MastodonServer `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Mastodon{}, &MastodonList{})
+	SchemeBuilder.Register(&MastodonServer{}, &MastodonServerList{})
 }

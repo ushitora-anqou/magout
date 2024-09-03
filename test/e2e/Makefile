@@ -1,5 +1,3 @@
-include ../../common.mk
-
 # Utilize Kind or modify the e2e tests to load the image locally, enabling compatibility with other vendors.
 .PHONY: test  # Run the e2e tests against a Kind k8s instance that is spun up.
 test: kind helm
@@ -13,3 +11,5 @@ test: kind helm
 .PHONY: clean
 clean: kind
 	$(KIND) delete cluster --name $(KIND_TEST_CLUSTER) || true
+
+include ../../common.mk
