@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: magout-controller
+rules:
+  - apiGroups:
+      - magout.anqou.net
+    resources:
+      - mastodonservers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - magout.anqou.net
+    resources:
+      - mastodonservers/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - magout.anqou.net
+    resources:
+      - mastodonservers/status
+    verbs:
+      - get
+      - patch
+      - update

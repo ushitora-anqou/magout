@@ -7,6 +7,7 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
 KIND ?= $(LOCALBIN)/kind
 HELM ?= $(LOCALBIN)/helm
+YQ ?= $(LOCALBIN)/yq
 
 ## Versions
 KUBERNETES_VERSION ?= 1.31.0
@@ -15,6 +16,7 @@ ENVTEST_VERSION ?= release-0.19
 GOLANGCI_LINT_VERSION ?= v1.59.1
 KIND_VERSION ?= v0.24.0
 HELM_VERSION ?= v3.15.4
+YQ_VERSION ?= v4.44.3
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = $(KUBERNETES_VERSION)
@@ -71,3 +73,8 @@ $(ENVTEST): $(LOCALBIN)
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
 $(GOLANGCI_LINT): $(LOCALBIN)
 	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
+
+.PHONY: yq
+yq: $(YQ)
+$(YQ): $(LOCALBIN)
+	$(call go-install-tool,$(YQ),github.com/mikefarah/yq/v4,$(YQ_VERSION))

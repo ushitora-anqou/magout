@@ -43,8 +43,10 @@ check-uncommitted: generate ## Check if latest generated artifacts are committed
 	git diff --exit-code --name-only
 
 .PHONY: manifests
-manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+manifests: yq controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	cp -a config/crd/bases/magout.anqou.net_mastodonservers.yaml charts/magout/templates/
+	cat config/rbac/role.yaml | $(YQ) '.metadata.name = "magout-controller"' > charts/magout/templates/clusterrole.yaml
 
 .PHONY: generate
 generate: manifests controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
