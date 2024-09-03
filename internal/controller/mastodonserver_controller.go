@@ -18,14 +18,14 @@ import (
 )
 
 const (
-	prefix              = "magout.anqou.net/"
-	labelMastodonServer = prefix + "mastodon-server"
-	labelDeployImage    = prefix + "deploy-image"
+	domain              = "magout.anqou.net"
+	labelMastodonServer = domain + "/mastodon-server"
+	labelDeployImage    = domain + "/deploy-image"
 )
 
 // MastodonServerReconciler reconciles a MastodonServer object
 type MastodonServerReconciler struct {
-	client client.Client
+	Client client.Client
 	Scheme *runtime.Scheme
 }
 
@@ -46,7 +46,7 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	logger := log.FromContext(ctx)
 
 	var server magoutv1.MastodonServer
-	if err := r.client.Get(ctx, req.NamespacedName, &server); k8serrors.IsNotFound(err) {
+	if err := r.Client.Get(ctx, req.NamespacedName, &server); k8serrors.IsNotFound(err) {
 		logger.Info(
 			"MastodonServer not found",
 			"name", server.GetName(),
@@ -92,7 +92,7 @@ func (r *MastodonServerReconciler) createOrUpdateSidekiqDeployment(
 	deploy.SetName(fmt.Sprintf("%s-sidekiq", server.GetName()))
 	deploy.SetNamespace(server.GetNamespace())
 
-	result, err := ctrl.CreateOrUpdate(ctx, r.client, &deploy, func() error {
+	result, err := ctrl.CreateOrUpdate(ctx, r.Client, &deploy, func() error {
 		deploy.SetAnnotations(spec.Annotations)
 
 		selector := map[string]string{

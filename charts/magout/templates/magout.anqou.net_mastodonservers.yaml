@@ -103,6 +103,7 @@ spec:
                     type: object
                   replicas:
                     default: 1
+                    format: int32
                     type: integer
                   resources:
                     description: ResourceRequirements describes the compute resource
@@ -231,6 +232,7 @@ spec:
                     type: object
                   replicas:
                     default: 1
+                    format: int32
                     type: integer
                   resources:
                     description: ResourceRequirements describes the compute resource
@@ -359,6 +361,7 @@ spec:
                     type: object
                   replicas:
                     default: 1
+                    format: int32
                     type: integer
                   resources:
                     description: ResourceRequirements describes the compute resource
