@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -13,7 +14,7 @@ import (
 
 // MastodonServerReconciler reconciles a MastodonServer object
 type MastodonServerReconciler struct {
-	client.Client
+	client client.Client
 	Scheme *runtime.Scheme
 }
 
@@ -31,9 +32,19 @@ type MastodonServerReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.0/pkg/reconcile
 func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	var server magoutv1.MastodonServer
+	if err := r.client.Get(ctx, req.NamespacedName, &server); k8serrors.IsNotFound(err) {
+		logger.Info(
+			"MastodonServer not found",
+			"name", server.GetName(),
+			"namespace", server.GetNamespace(),
+		)
+		return ctrl.Result{}, nil
+	} else if err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
