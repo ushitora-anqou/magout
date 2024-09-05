@@ -58,10 +58,18 @@ type MastodonServerSpec struct {
 	Sidekiq   MastodonServerSidekiqSpec   `json:"sidekiq"`
 }
 
+type MastodonServerMigratingStatus struct {
+	Web       string `json:"web"`
+	Sidekiq   string `json:"sidekiq"`
+	Streaming string `json:"streaming"`
+}
+
 // MastodonServerStatus defines the observed state of MastodonServer
 type MastodonServerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	Migrating *MastodonServerMigratingStatus `json:"migrating,omitempty"`
 }
 
 // +kubebuilder:object:root=true
