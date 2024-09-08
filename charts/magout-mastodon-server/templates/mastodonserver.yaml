@@ -1,0 +1,69 @@
+apiVersion: magout.anqou.net/v1
+kind: MastodonServer
+metadata:
+  name: {{ include "magout-mastodon-server.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  sidekiq:
+    image: {{ .Values.mastodonServer.sidekiq.image }}
+    {{- with .Values.mastodonServer.sidekiq.replicas }}
+    replicas: {{ . }}
+    {{- end }}
+    {{- with .Values.mastodonServer.sidekiq.labels }}
+    labels:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.sidekiq.annotations }}
+    annotations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.sidekiq.envFrom }}
+    envFrom:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.sidekiq.resources }}
+    resources:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  web:
+    image: {{ .Values.mastodonServer.web.image }}
+    {{- with .Values.mastodonServer.web.replicas }}
+    replicas: {{ . }}
+    {{- end }}
+    {{- with .Values.mastodonServer.web.labels }}
+    labels:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.web.annotations }}
+    annotations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.web.envFrom }}
+    envFrom:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.web.resources }}
+    resources:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  streaming:
+    image: {{ .Values.mastodonServer.streaming.image }}
+    {{- with .Values.mastodonServer.streaming.replicas }}
+    replicas: {{ . }}
+    {{- end }}
+    {{- with .Values.mastodonServer.streaming.labels }}
+    labels:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.streaming.annotations }}
+    annotations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.streaming.envFrom }}
+    envFrom:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.streaming.resources }}
+    resources:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}

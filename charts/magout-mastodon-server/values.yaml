@@ -1,0 +1,32 @@
+gateway:
+  #serverName: "example.com"
+  deploy:
+    replicaCount: 1
+    image: nginx:latest
+    resources: {}
+  service:
+    type: ClusterIP
+    port: 80
+
+mastodonServer:
+  sidekiq:
+    #image: ghcr.io/mastodon/mastodon:latest
+    #replicas: 1
+    #labels: {}
+    #annotations: {}
+    #envFrom: {}
+    #resources: {}
+  web:
+    #replicas: 1
+    #image: ghcr.io/mastodon/mastodon:latest
+    #labels: {}
+    #annotations: {}
+    #envFrom: {}
+    #resources: {}
+  streaming:
+    #replicas: 1
+    #image: ghcr.io/mastodon/mastodon:latest
+    #labels: {}
+    #annotations: {}
+    #envFrom: {}
+    #resources: {}

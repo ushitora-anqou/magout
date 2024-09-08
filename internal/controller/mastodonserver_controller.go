@@ -24,6 +24,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers/finalizers,verbs=update
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;create;update;patch;delete
+
 //go:generate go run golang.org/x/tools/cmd/stringer -type=deployStatusType
 //go:generate go run golang.org/x/tools/cmd/stringer -type=jobStatusType
 //go:generate go run golang.org/x/tools/cmd/stringer -type=whatToDoType
@@ -120,14 +127,12 @@ type MastodonServerReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers/finalizers,verbs=update
-
 // SetupWithManager sets up the controller with the Manager.
 func (r *MastodonServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&magoutv1.MastodonServer{}).
+		Owns(&appsv1.Deployment{}).
+		Owns(&batchv1.Job{}).
 		Complete(r)
 }
 
@@ -481,8 +486,19 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 	deploy.SetNamespace(server.GetNamespace())
 
 	result, err := ctrl.CreateOrUpdate(ctx, r.Client, &deploy, func() error {
-		deploy.SetAnnotations(deployAnnotations)
-		deploy.SetLabels(deployLabels)
+		if deployAnnotations == nil {
+			deployAnnotations = map[string]string{}
+		}
+		for k, v := range deployAnnotations {
+			deployAnnotations[k] = v
+		}
+
+		if deployLabels == nil {
+			deployLabels = map[string]string{}
+		}
+		for k, v := range deployLabels {
+			deployLabels[k] = v
+		}
 
 		selector := map[string]string{
 			"app.kubernetes.io/name":      appName,

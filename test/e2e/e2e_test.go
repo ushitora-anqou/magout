@@ -13,29 +13,44 @@ import (
 
 var (
 	kubectlPrefix = os.Getenv("KUBECTL")
+	helmPrefix    = os.Getenv("HELM")
 )
 
-func kubectl(input []byte, args ...string) ([]byte, []byte, error) {
-	fields := strings.Fields(kubectlPrefix)
-	fields = append(fields, args...)
-
+func command(input []byte, args ...string) ([]byte, []byte, error) {
 	var stdout, stderr bytes.Buffer
-	command := exec.Command(fields[0], fields[1:]...)
+	command := exec.Command(args[0], args[1:]...)
 	command.Stdout = &stdout
 	command.Stderr = &stderr
 	if input != nil {
 		command.Stdin = bytes.NewReader(input)
 	}
 	err := command.Run()
+	if err != nil {
+		slog.Error(
+			"failed to execute command",
+			"command", args,
+			"stdout", stdout.Bytes(),
+			"stderr", stderr.Bytes(),
+		)
+	}
 	return stdout.Bytes(), stderr.Bytes(), err
 }
 
+func kubectl(input []byte, args ...string) ([]byte, []byte, error) {
+	fields := strings.Fields(kubectlPrefix)
+	fields = append(fields, args...)
+	return command(input, fields...)
+}
+
 func kubectlApply(fileName string) error {
-	stdout, stderr, err := kubectl(nil, "apply", "-f", "testdata/"+fileName)
-	if err != nil {
-		slog.Error("failed to kubectl apply", "stdout", stdout, "stderr", stderr)
-	}
+	_, _, err := kubectl(nil, "apply", "-f", "testdata/"+fileName)
 	return err
+}
+
+func helm(input []byte, args ...string) ([]byte, []byte, error) {
+	fields := strings.Fields(helmPrefix)
+	fields = append(fields, args...)
+	return command(input, fields...)
 }
 
 var _ = Describe("controller", Ordered, func() {
@@ -43,10 +58,10 @@ var _ = Describe("controller", Ordered, func() {
 		It("should run successfully", func() {
 			var err error
 
-			err = kubectlApply("mastodon0-v4.2.12.yaml")
+			_, _, err = helm(nil, "upgrade", "--install", "--namespace=e2e",
+				"magout-mastodon-server", "../../charts/magout-mastodon-server", "--wait",
+				"-f", "testdata/values-v4.2.12.yaml")
 			Expect(err).NotTo(HaveOccurred())
-
-			return
 		})
 	})
 })

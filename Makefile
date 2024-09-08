@@ -46,7 +46,9 @@ check-uncommitted: generate ## Check if latest generated artifacts are committed
 manifests: yq controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	cp -a config/crd/bases/magout.anqou.net_mastodonservers.yaml charts/magout/templates/
-	cat config/rbac/role.yaml | $(YQ) '.metadata.name = "magout-controller"' > charts/magout/templates/clusterrole.yaml
+	cat config/rbac/role.yaml \
+		| $(YQ) '.metadata.name = "{{ include \"magout.fullname\" . }}"' \
+		> charts/magout/templates/clusterrole.yaml
 
 .PHONY: generate
 generate: manifests controller-gen
