@@ -26,6 +26,7 @@ linters-settings:
 linters:
   enable-all: true
   disable:
+    - unparam
     - nlreturn
     - godox
     - wrapcheck
