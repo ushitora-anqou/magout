@@ -46,6 +46,16 @@ const (
 	jobStatusCompleted
 	jobStatusNotCompleted
 	jobStatusFailed
+
+	shouldCreatePreMigrationJob = iota
+	shouldCreatePostMigrationJob
+	shouldSetMigratingStatus
+	shouldUnsetMigratingStatus
+	shouldCreateOrUpdateDeploysWithSpec
+	shouldCreateOrUpdateDeploysWithMigratingImages
+	shouldDeletePostMigrationJob
+	shouldDeletePreMigrationJob
+	shouldDoNothing
 )
 
 func buildDeploymentName(component, mastodonServerName string) string {
@@ -87,6 +97,15 @@ func (im1 *ImageMap) Equals(im2 *ImageMap) bool {
 	return im1.web == im2.web && im1.sidekiq == im2.sidekiq && im1.streaming == im2.streaming
 }
 
+type k8sStatus struct {
+	deploymentsStatus      int
+	preMigrationJobStatus  int
+	postMigrationJobStatus int
+	migratingImageMap      *ImageMap
+	currentImageMap        *ImageMap
+	specImageMap           *ImageMap
+}
+
 // MastodonServerReconciler reconciles a MastodonServer object
 type MastodonServerReconciler struct {
 	Client client.Client
@@ -96,6 +115,13 @@ type MastodonServerReconciler struct {
 // +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers/finalizers,verbs=update
+
+// SetupWithManager sets up the controller with the Manager.
+func (r *MastodonServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&magoutv1.MastodonServer{}).
+		Complete(r)
+}
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -121,81 +147,196 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, err
 	}
 
-	specImageMap := ImageMap{
+	k8sStatus, err := r.fetchK8sStatus(ctx, &server)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	whattodo, err := decideWhatToDo(k8sStatus)
+	if err != nil {
+		logger.Error(
+			err,
+			"manual intervention should be performed because reconciler can't handle the current situation",
+			"deploymentStatus", k8sStatus.deploymentsStatus,
+			"preMigrationJobStatus", k8sStatus.preMigrationJobStatus,
+			"postMigrationJobStatus", k8sStatus.postMigrationJobStatus,
+			"migratingImageMap", k8sStatus.migratingImageMap != nil,
+		)
+		return ctrl.Result{}, err
+	}
+
+	logger.Info(
+		"reconciling",
+		"name", server.GetName(),
+		"namespace", server.GetNamespace(),
+		"whattodo", whattodo,
+	)
+
+	switch whattodo {
+	case shouldCreatePreMigrationJob:
+		if err := r.createMigrationJob(ctx, &server, k8sStatus.migratingImageMap, jobPreMigration); err != nil {
+			return ctrl.Result{}, err
+		}
+
+	case shouldCreatePostMigrationJob:
+		if err := r.createMigrationJob(ctx, &server, k8sStatus.migratingImageMap, jobPostMigration); err != nil {
+			return ctrl.Result{}, err
+		}
+
+	case shouldSetMigratingStatus:
+		server.Status.Migrating = &magoutv1.MastodonServerMigratingStatus{
+			Web:       k8sStatus.specImageMap.web,
+			Sidekiq:   k8sStatus.specImageMap.sidekiq,
+			Streaming: k8sStatus.specImageMap.streaming,
+		}
+		if err := r.Client.Status().Update(ctx, &server); err != nil {
+			return ctrl.Result{}, err
+		}
+
+	case shouldUnsetMigratingStatus:
+		server.Status.Migrating = nil
+		if err := r.Client.Status().Update(ctx, &server); err != nil {
+			return ctrl.Result{}, err
+		}
+
+	case shouldCreateOrUpdateDeploysWithSpec:
+		if err := r.createOrUpdateDeployments(ctx, &server, k8sStatus.specImageMap); err != nil {
+			return ctrl.Result{}, err
+		}
+
+	case shouldCreateOrUpdateDeploysWithMigratingImages:
+		if err := r.createOrUpdateDeployments(ctx, &server, k8sStatus.migratingImageMap); err != nil {
+			return ctrl.Result{}, err
+		}
+
+	case shouldDeletePostMigrationJob:
+		if err := r.deleteJob(
+			ctx,
+			buildJobName(jobPostMigration, server.GetName()),
+			server.GetNamespace(),
+		); err != nil {
+			return ctrl.Result{}, err
+		}
+
+	case shouldDeletePreMigrationJob:
+		if err := r.deleteJob(
+			ctx,
+			buildJobName(jobPreMigration, server.GetName()),
+			server.GetNamespace(),
+		); err != nil {
+			return ctrl.Result{}, err
+		}
+
+	case shouldDoNothing:
+
+	default:
+		panic("unreachable")
+	}
+
+	return ctrl.Result{}, nil
+}
+
+func (r *MastodonServerReconciler) fetchK8sStatus(
+	ctx context.Context,
+	server *magoutv1.MastodonServer,
+) (*k8sStatus, error) {
+	var err error
+	res := &k8sStatus{}
+
+	res.specImageMap = &ImageMap{
 		web:       server.Spec.Web.Image,
 		sidekiq:   server.Spec.Sidekiq.Image,
 		streaming: server.Spec.Streaming.Image,
 	}
 
-	var migratingImageMap *ImageMap
 	if server.Status.Migrating != nil {
-		migratingImageMap = &ImageMap{
+		res.migratingImageMap = &ImageMap{
 			web:       server.Status.Migrating.Web,
 			sidekiq:   server.Status.Migrating.Sidekiq,
 			streaming: server.Status.Migrating.Streaming,
 		}
 	}
 
-	deploymentsStatus, deployImageMap, err := r.getDeploymentsStatus(
+	res.deploymentsStatus, res.currentImageMap, err = r.getDeploymentsStatus(
 		ctx, server.GetName(), server.GetNamespace())
 	if err != nil {
-		return ctrl.Result{}, err
+		return nil, err
 	}
 
-	preMigrationJobStatus, err := r.getJobStatus(
+	res.preMigrationJobStatus, err = r.getJobStatus(
 		ctx, server.GetName(), server.GetNamespace(), jobPreMigration)
 	if err != nil {
-		return ctrl.Result{}, err
+		return nil, err
 	}
 
-	postMigrationJobStatus, err := r.getJobStatus(
+	res.postMigrationJobStatus, err = r.getJobStatus(
 		ctx, server.GetName(), server.GetNamespace(), jobPostMigration)
 	if err != nil {
-		return ctrl.Result{}, err
+		return nil, err
 	}
 
-	switch {
-	case
-		deploymentsStatus == deployStatusNotFound &&
-			preMigrationJobStatus == jobStatusNotFound &&
-			postMigrationJobStatus == jobStatusNotFound &&
-			migratingImageMap != nil: // S1
-	default:
-		err := errors.New("unknown current status")
-		logger.Error(
-			err,
-			"manual intervention should be performed because reconciler can't handle the current situation",
-			"deploymentStatus", deploymentsStatus,
-			"preMigrationJobStatus", preMigrationJobStatus,
-			"postMigrationJobStatus", postMigrationJobStatus,
-			"migratingImageMap", migratingImageMap != nil,
-		)
-		return ctrl.Result{}, err
-	}
-
-	if err := r.createOrUpdateSidekiqDeployment(ctx, &server); err != nil {
-		return ctrl.Result{}, err
-	}
-	if err := r.createOrUpdateStreamingDeployment(ctx, &server); err != nil {
-		return ctrl.Result{}, err
-	}
-	if err := r.createOrUpdateWebDeployment(ctx, &server); err != nil {
-		return ctrl.Result{}, err
-	}
-
-	return ctrl.Result{}, nil
+	return res, nil
 }
 
-// SetupWithManager sets up the controller with the Manager.
-func (r *MastodonServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&magoutv1.MastodonServer{}).
-		Complete(r)
+func (r *MastodonServerReconciler) createMigrationJob(
+	ctx context.Context,
+	server *magoutv1.MastodonServer,
+	imageMap *ImageMap,
+	kind string,
+) error {
+	env := []corev1.EnvVar{}
+	switch kind {
+	case jobPreMigration:
+	case jobPostMigration:
+		env = append(env, corev1.EnvVar{
+			Name: "SKIP_POST_DEPLOYMENT_MIGRATIONS", Value: "true"})
+	default:
+		return errors.New("invalid job kind")
+	}
+
+	var job batchv1.Job
+	job.SetName(buildJobName(kind, server.GetName()))
+	job.SetNamespace(server.GetNamespace())
+	ctrl.SetControllerReference(server, &job, r.Scheme)
+	job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyOnFailure
+	job.Spec.Template.Spec.Containers = []corev1.Container{
+		{
+			Name:    "migration",
+			Image:   imageMap.web,
+			EnvFrom: server.Spec.Web.EnvFrom,
+			Env:     env,
+			Command: []string{
+				"bash",
+				"-c",
+				"bundle exec rake db:create;\nbundle exec rake db:migrate",
+			},
+		},
+	}
+
+	return r.Client.Create(ctx, &job)
+}
+
+func (r *MastodonServerReconciler) createOrUpdateDeployments(
+	ctx context.Context,
+	server *magoutv1.MastodonServer,
+	imageMap *ImageMap,
+) error {
+	if err := r.createOrUpdateSidekiqDeployment(ctx, server, imageMap.sidekiq); err != nil {
+		return err
+	}
+	if err := r.createOrUpdateStreamingDeployment(ctx, server, imageMap.streaming); err != nil {
+		return err
+	}
+	if err := r.createOrUpdateWebDeployment(ctx, server, imageMap.web); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *MastodonServerReconciler) createOrUpdateSidekiqDeployment(
 	ctx context.Context,
 	server *magoutv1.MastodonServer,
+	image string,
 ) error {
 	spec := server.Spec.Sidekiq
 	return r.createOrUpdateDeployment(
@@ -206,7 +347,7 @@ func (r *MastodonServerReconciler) createOrUpdateSidekiqDeployment(
 		spec.Annotations,
 		spec.Labels,
 		spec.Replicas,
-		spec.Image,
+		image,
 		spec.Resources,
 		[]string{"bash", "-c", "bundle exec sidekiq"},
 		spec.EnvFrom,
@@ -220,6 +361,7 @@ func (r *MastodonServerReconciler) createOrUpdateSidekiqDeployment(
 func (r *MastodonServerReconciler) createOrUpdateStreamingDeployment(
 	ctx context.Context,
 	server *magoutv1.MastodonServer,
+	image string,
 ) error {
 	spec := server.Spec.Streaming
 	return r.createOrUpdateDeployment(
@@ -230,7 +372,7 @@ func (r *MastodonServerReconciler) createOrUpdateStreamingDeployment(
 		spec.Annotations,
 		spec.Labels,
 		spec.Replicas,
-		spec.Image,
+		image,
 		spec.Resources,
 		[]string{"bash", "-c", "node ./streaming"},
 		spec.EnvFrom,
@@ -253,6 +395,7 @@ func (r *MastodonServerReconciler) createOrUpdateStreamingDeployment(
 func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 	ctx context.Context,
 	server *magoutv1.MastodonServer,
+	image string,
 ) error {
 	spec := server.Spec.Web
 	return r.createOrUpdateDeployment(
@@ -263,7 +406,7 @@ func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 		spec.Annotations,
 		spec.Labels,
 		spec.Replicas,
-		spec.Image,
+		image,
 		spec.Resources,
 		[]string{"bash", "-c", "bundle exec puma -C config/puma.rb"},
 		spec.EnvFrom,
@@ -474,4 +617,86 @@ func (r *MastodonServerReconciler) getDeploymentsStatus(
 		return deployStatusReady, &imageMap, nil
 	}
 	return deployStatusNotReady, &imageMap, nil
+}
+
+func (r *MastodonServerReconciler) deleteJob(ctx context.Context, name, namespace string) error {
+	var job batchv1.Job
+	if err := r.Client.Get(
+		ctx,
+		types.NamespacedName{
+			Name:      name,
+			Namespace: namespace,
+		},
+		&job,
+	); err != nil {
+		return err
+	}
+
+	propagationPolicy := metav1.DeletePropagationBackground
+	return r.Client.Delete(ctx, &job, &client.DeleteOptions{
+		PropagationPolicy: &propagationPolicy,
+	})
+}
+
+func decideWhatToDo(k8sStatus *k8sStatus) (int, error) {
+	mig := k8sStatus.migratingImageMap
+	cur := k8sStatus.currentImageMap
+	spec := k8sStatus.specImageMap
+
+	preJNotFound := k8sStatus.preMigrationJobStatus == jobStatusNotFound
+	preJCompleted := k8sStatus.preMigrationJobStatus == jobStatusCompleted
+	preJFailed := k8sStatus.preMigrationJobStatus == jobStatusFailed
+	preJNotCompleted := k8sStatus.preMigrationJobStatus == jobStatusNotCompleted
+	postJNotFound := k8sStatus.postMigrationJobStatus == jobStatusNotFound
+	postJCompleted := k8sStatus.postMigrationJobStatus == jobStatusCompleted
+	postJFailed := k8sStatus.postMigrationJobStatus == jobStatusFailed
+	postJNotCompleted := k8sStatus.postMigrationJobStatus == jobStatusNotCompleted
+	dNotFound := k8sStatus.deploymentsStatus == deployStatusNotFound
+	dReady := k8sStatus.deploymentsStatus == deployStatusReady
+	dNotReady := k8sStatus.deploymentsStatus == deployStatusNotReady
+
+	switch {
+	case preJNotFound && postJNotFound && dNotFound && mig != nil: // S1
+		fallthrough
+	case preJCompleted && postJNotFound && dReady && mig != nil && cur.Equals(mig): // S31
+		return shouldCreatePostMigrationJob, nil
+
+	case preJNotFound && postJNotFound && dNotFound && mig == nil: // S2
+		fallthrough
+	case preJNotFound && postJNotFound && (dReady || dNotReady) && mig == nil && !cur.Equals(spec): // S33
+		return shouldSetMigratingStatus, nil
+
+	case preJNotFound && postJNotFound && (dReady || dNotReady) && mig != nil && cur.Equals(mig): // S5
+		return shouldUnsetMigratingStatus, nil
+
+	case preJNotFound && postJNotFound && (dReady || dNotReady) && mig != nil && !cur.Equals(mig): // S6
+		return shouldCreatePreMigrationJob, nil
+
+	case preJNotFound && postJNotFound && (dReady || dNotReady) && mig == nil && cur.Equals(spec): // S7
+		return shouldCreateOrUpdateDeploysWithSpec, nil
+
+	case preJNotFound && postJCompleted && dNotFound && mig != nil: // S8
+		fallthrough
+	case preJCompleted && postJNotFound && dReady && mig != nil && !cur.Equals(mig): // S20
+		fallthrough
+	case preJCompleted && postJNotFound && dNotReady && mig != nil && !cur.Equals(mig): // S20
+		fallthrough
+	case preJCompleted && postJNotFound && dNotReady && mig != nil && cur.Equals(mig): // S32
+		return shouldCreateOrUpdateDeploysWithMigratingImages, nil
+
+	case preJNotFound && postJCompleted && (dReady || dNotReady) && mig != nil && cur.Equals(mig): // S12
+		fallthrough
+	case postJFailed: // S30
+		return shouldDeletePostMigrationJob, nil
+
+	case preJCompleted && postJCompleted && (dReady || dNotReady) && mig != nil && cur.Equals(mig): // S26
+		fallthrough
+	case preJFailed: // S29
+		return shouldDeletePreMigrationJob, nil
+
+	case preJNotCompleted || postJNotCompleted: // S34
+		return shouldDoNothing, nil
+	}
+
+	return -1, errors.New("unknown current status")
 }
