@@ -1,0 +1,37 @@
+---
+apiVersion: magout.anqou.net/v1
+kind: MastodonServer
+metadata:
+  name: mastodon0
+  namespace: e2e
+spec:
+  sidekiq:
+    replicas: 1
+    annotations:
+      test.mahout.anqou.net/role: sidekiq
+    image: "ghcr.io/mastodon/mastodon:v4.2.12"
+    envFrom:
+      - secretRef:
+          name: secret-env
+  streaming:
+    annotations:
+      test.mahout.anqou.net/role: streaming
+    image: "ghcr.io/mastodon/mastodon:v4.2.12"
+    envFrom:
+      - secretRef:
+          name: secret-env
+  web:
+    replicas: 1
+    annotations:
+      test.mahout.anqou.net/role: web
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
+      limits:
+        cpu: "1"
+        memory: 1000Mi
+    image: "ghcr.io/mastodon/mastodon:v4.2.12"
+    envFrom:
+      - secretRef:
+          name: secret-env

@@ -1,0 +1,24 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: toolbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: toolbox
+  template:
+    metadata:
+      labels:
+        app: toolbox
+    spec:
+      containers:
+        - name: ubuntu
+          image: ubuntu:22.04
+          command:
+            - bash
+            - -c
+            - |
+              apt update && apt install -y curl
+              sleep infinity

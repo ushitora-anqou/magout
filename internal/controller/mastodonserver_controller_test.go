@@ -58,7 +58,7 @@ var _ = Describe("MastodonServer Controller", func() {
 	Context("When reconciling a resource", func() {
 		ctx := context.Background()
 
-		It("should create post-migration job if nothing is found", func() {
+		It("should run successfully", func() {
 			mastodonServerName := "test"
 			namespace := "default"
 			namespacedName := types.NamespacedName{Name: mastodonServerName, Namespace: namespace}

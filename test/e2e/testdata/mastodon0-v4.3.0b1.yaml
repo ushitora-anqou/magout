@@ -1,0 +1,30 @@
+---
+apiVersion: mahout.anqou.net/v1alpha1
+kind: Mastodon
+metadata:
+  name: mastodon0
+  namespace: e2e
+spec:
+  serverName: "mastodon.test"
+  image: "ghcr.io/mastodon/mastodon:4.3.0b1"
+  envFrom:
+    - secretRef:
+        name: secret-env
+  gateway:
+    replicas: 1
+    annotations:
+      test.mahout.anqou.net/role: gateway
+    image: "nginx:1.27.1"
+  sidekiq:
+    replicas: 1
+    annotations:
+      test.mahout.anqou.net/role: sidekiq
+  streaming:
+    image: "ghcr.io/mastodon/mastodon-streaming:4.3.0b1"
+    replicas: 1
+    annotations:
+      test.mahout.anqou.net/role: streaming
+  web:
+    replicas: 1
+    annotations:
+      test.mahout.anqou.net/role: web
