@@ -49,8 +49,9 @@ manifests: yq controller-gen ## Generate WebhookConfiguration, ClusterRole and C
 	cat config/rbac/role.yaml | $(YQ) '.metadata.name = "magout-controller"' > charts/magout/templates/clusterrole.yaml
 
 .PHONY: generate
-generate: manifests controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+generate: manifests controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+	go generate ./...
 
 .PHONY: test
 test: generate envtest ## Run tests.

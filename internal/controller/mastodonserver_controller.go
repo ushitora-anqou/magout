@@ -24,30 +24,40 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+//go:generate go run golang.org/x/tools/cmd/stringer -type=deployStatusType
+//go:generate go run golang.org/x/tools/cmd/stringer -type=jobStatusType
+//go:generate go run golang.org/x/tools/cmd/stringer -type=whatToDoType
+
+type componentType string
+type jobType string
+type deployStatusType int
+type jobStatusType int
+type whatToDoType int
+
 const (
 	domain              = "magout.anqou.net"
 	labelMastodonServer = domain + "/mastodon-server"
 	labelDeployImage    = domain + "/deploy-image"
 
-	componentWeb       = "web"
-	componentSidekiq   = "sidekiq"
-	componentStreaming = "streaming"
+	componentWeb       componentType = "web"
+	componentSidekiq   componentType = "sidekiq"
+	componentStreaming componentType = "streaming"
 
-	jobPreMigration  = "pre-migration"
-	jobPostMigration = "post-migration"
+	jobPreMigration  jobType = "pre-migration"
+	jobPostMigration jobType = "post-migration"
 
-	deployStatusUnknown = iota
+	deployStatusUnknown deployStatusType = iota
 	deployStatusNotFound
 	deployStatusReady
 	deployStatusNotReady
 
-	jobStatusUnknown = iota
+	jobStatusUnknown jobStatusType = iota
 	jobStatusNotFound
 	jobStatusCompleted
 	jobStatusNotCompleted
 	jobStatusFailed
 
-	shouldCreatePreMigrationJob = iota
+	shouldCreatePreMigrationJob whatToDoType = iota
 	shouldCreatePostMigrationJob
 	shouldSetMigratingStatus
 	shouldUnsetMigratingStatus
@@ -58,12 +68,12 @@ const (
 	shouldDoNothing
 )
 
-func buildDeploymentName(component, mastodonServerName string) string {
-	return fmt.Sprintf("%s-%s", mastodonServerName, component)
+func buildDeploymentName(component componentType, mastodonServerName string) string {
+	return fmt.Sprintf("%s-%s", mastodonServerName, string(component))
 }
 
-func buildJobName(kind, mastodonServerName string) string {
-	return fmt.Sprintf("%s-%s", mastodonServerName, kind)
+func buildJobName(kind jobType, mastodonServerName string) string {
+	return fmt.Sprintf("%s-%s", mastodonServerName, string(kind))
 }
 
 func encodeDeploymentImage(image string) string {
@@ -98,9 +108,9 @@ func (im1 *ImageMap) Equals(im2 *ImageMap) bool {
 }
 
 type k8sStatus struct {
-	deploymentsStatus      int
-	preMigrationJobStatus  int
-	postMigrationJobStatus int
+	deploymentsStatus      deployStatusType
+	preMigrationJobStatus  jobStatusType
+	postMigrationJobStatus jobStatusType
 	migratingImageMap      *ImageMap
 	currentImageMap        *ImageMap
 	specImageMap           *ImageMap
@@ -169,7 +179,7 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		"reconciling",
 		"name", server.GetName(),
 		"namespace", server.GetNamespace(),
-		"whattodo", whattodo,
+		"whattodo", whattodo.String(),
 	)
 
 	switch whattodo {
@@ -282,7 +292,7 @@ func (r *MastodonServerReconciler) createMigrationJob(
 	ctx context.Context,
 	server *magoutv1.MastodonServer,
 	imageMap *ImageMap,
-	kind string,
+	kind jobType,
 ) error {
 	env := []corev1.EnvVar{}
 	switch kind {
@@ -444,7 +454,8 @@ func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 func (r *MastodonServerReconciler) createOrUpdateDeployment(
 	ctx context.Context,
 	server *magoutv1.MastodonServer,
-	appName, component string,
+	appName string,
+	component componentType,
 	deployAnnotations map[string]string,
 	deployLabels map[string]string,
 	replicas int32,
@@ -468,7 +479,7 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 
 		selector := map[string]string{
 			"app.kubernetes.io/name":      appName,
-			"app.kubernetes.io/component": component,
+			"app.kubernetes.io/component": string(component),
 			"app.kubernetes.io/part-of":   "mastodon",
 		}
 		deploy.Spec.Selector = &metav1.LabelSelector{
@@ -490,7 +501,7 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 		deploy.Spec.Replicas = &replicas
 		deploy.Spec.Template.Spec.Containers = []corev1.Container{
 			{
-				Name:           component,
+				Name:           string(component),
 				Image:          image,
 				Resources:      resources,
 				Command:        command,
@@ -524,11 +535,11 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 }
 
 func (r *MastodonServerReconciler) getJobStatus(
-	ctx context.Context, name, namespace, kind string,
-) (int, error) {
+	ctx context.Context, name, namespace string, kind jobType,
+) (jobStatusType, error) {
 	var job batchv1.Job
 	if err := r.Client.Get(ctx, types.NamespacedName{
-		Name:      buildJobName(name, kind),
+		Name:      buildJobName(kind, name),
 		Namespace: namespace,
 	}, &job); k8serrors.IsNotFound(err) {
 		return jobStatusNotFound, nil
@@ -547,7 +558,7 @@ func (r *MastodonServerReconciler) getJobStatus(
 
 func (r *MastodonServerReconciler) getDeploymentsStatus(
 	ctx context.Context, name, namespace string,
-) (int, *ImageMap, error) {
+) (deployStatusType, *ImageMap, error) {
 	webImage, err := getDeploymentImage(
 		ctx, r.Client, buildDeploymentName(componentWeb, name), namespace)
 	if k8serrors.IsNotFound(err) {
@@ -638,7 +649,7 @@ func (r *MastodonServerReconciler) deleteJob(ctx context.Context, name, namespac
 	})
 }
 
-func decideWhatToDo(k8sStatus *k8sStatus) (int, error) {
+func decideWhatToDo(k8sStatus *k8sStatus) (whatToDoType, error) {
 	mig := k8sStatus.migratingImageMap
 	cur := k8sStatus.currentImageMap
 	spec := k8sStatus.specImageMap
