@@ -95,13 +95,21 @@ var _ = Describe("MastodonServer Controller", func() {
 			Expect(deployWeb.Spec.Template.GetLabels()[labelMagoutAnqouNetDeployImage]).To(Equal(webImageBase64))
 
 			var deploySidekiq appsv1.Deployment
-			err = k8sClient.Get(ctx, types.NamespacedName{Name: mastodonServerName + "-sidekiq", Namespace: namespace}, &deploySidekiq)
+			err = k8sClient.Get(
+				ctx,
+				types.NamespacedName{Name: mastodonServerName + "-sidekiq", Namespace: namespace},
+				&deploySidekiq,
+			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deploySidekiq.Spec.Template.GetLabels()[labelMagoutAnqouNetMastodonServer]).To(Equal(mastodonServerName))
 			Expect(deploySidekiq.Spec.Template.GetLabels()[labelMagoutAnqouNetDeployImage]).To(Equal(sidekiqImageBase64))
 
 			var deployStreaming appsv1.Deployment
-			err = k8sClient.Get(ctx, types.NamespacedName{Name: mastodonServerName + "-streaming", Namespace: namespace}, &deployStreaming)
+			err = k8sClient.Get(
+				ctx,
+				types.NamespacedName{Name: mastodonServerName + "-streaming", Namespace: namespace},
+				&deployStreaming,
+			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deployStreaming.Spec.Template.GetLabels()[labelMagoutAnqouNetMastodonServer]).To(Equal(mastodonServerName))
 			Expect(deployStreaming.Spec.Template.GetLabels()[labelMagoutAnqouNetDeployImage]).To(Equal(streamingImageBase64))

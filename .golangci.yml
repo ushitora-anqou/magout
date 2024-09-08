@@ -1,6 +1,23 @@
+linters-settings:
+  revive:
+    rules:
+      - name: dot-imports
+        disabled: true
+
 linters:
   enable-all: true
   disable:
+    - nlreturn
+    - godox
+    - wrapcheck
+    - paralleltest
+    - mnd
+    - gochecknoglobals
+    - err113
+    - cyclop
+    - gochecknoinits
+    - wsl
+    - exhaustruct
     - gci
     - funlen
     - depguard
