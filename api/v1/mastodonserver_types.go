@@ -48,7 +48,7 @@ type MastodonServerWebSpec struct {
 	Replicas int32 `json:"replicas,omitempty"`
 }
 
-// MastodonServerSpec defines the desired state of MastodonServer
+// MastodonServerSpec defines the desired state of MastodonServer.
 type MastodonServerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
@@ -64,7 +64,7 @@ type MastodonServerMigratingStatus struct {
 	Streaming string `json:"streaming"`
 }
 
-// MastodonServerStatus defines the observed state of MastodonServer
+// MastodonServerStatus defines the observed state of MastodonServer.
 type MastodonServerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
@@ -75,7 +75,7 @@ type MastodonServerStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// MastodonServer is the Schema for the mastodons API
+// MastodonServer is the Schema for the mastodons API.
 type MastodonServer struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -86,7 +86,7 @@ type MastodonServer struct {
 
 // +kubebuilder:object:root=true
 
-// MastodonServerList contains a list of MastodonServer
+// MastodonServerList contains a list of MastodonServer.
 type MastodonServerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

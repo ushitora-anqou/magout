@@ -28,11 +28,13 @@ import (
 //go:generate go run golang.org/x/tools/cmd/stringer -type=jobStatusType
 //go:generate go run golang.org/x/tools/cmd/stringer -type=whatToDoType
 
-type componentType string
-type jobType string
-type deployStatusType int
-type jobStatusType int
-type whatToDoType int
+type (
+	componentType    string
+	jobType          string
+	deployStatusType int
+	jobStatusType    int
+	whatToDoType     int
+)
 
 const (
 	domain              = "magout.anqou.net"
@@ -112,7 +114,7 @@ type k8sStatus struct {
 	specImageMap           *ImageMap
 }
 
-// MastodonServerReconciler reconciles a MastodonServer object
+// MastodonServerReconciler reconciles a MastodonServer object.
 type MastodonServerReconciler struct {
 	Client client.Client
 	Scheme *runtime.Scheme
@@ -299,7 +301,8 @@ func (r *MastodonServerReconciler) createMigrationJob(
 	case jobPreMigration:
 	case jobPostMigration:
 		env = append(env, corev1.EnvVar{
-			Name: "SKIP_POST_DEPLOYMENT_MIGRATIONS", Value: "true"})
+			Name: "SKIP_POST_DEPLOYMENT_MIGRATIONS", Value: "true",
+		})
 	default:
 		return errors.New("invalid job kind")
 	}
