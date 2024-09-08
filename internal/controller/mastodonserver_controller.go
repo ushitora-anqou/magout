@@ -436,7 +436,7 @@ func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 		},
 		&corev1.Probe{
 			ProbeHandler: corev1.ProbeHandler{
-				HTTPGet: &corev1.HTTPGetAction{
+				TCPSocket: &corev1.TCPSocketAction{
 					Port: intstr.FromString("http"),
 				},
 			},
