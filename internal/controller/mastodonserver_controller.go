@@ -77,18 +77,14 @@ func buildJobName(kind jobType, mastodonServerName string) string {
 }
 
 func encodeDeploymentImage(image string) string {
-	return base64.StdEncoding.EncodeToString([]byte(image))
+	return base64.RawURLEncoding.EncodeToString([]byte(image))
 }
 
 func getDeploymentImage(
 	ctx context.Context, client client.Client, name, namespace string,
 ) (string, error) {
 	var deploy appsv1.Deployment
-	if err := client.Get(
-		ctx, types.NamespacedName{
-			Name: buildDeploymentName(componentWeb, name), Namespace: namespace,
-		}, &deploy,
-	); err != nil {
+	if err := client.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, &deploy); err != nil {
 		return "", err
 	}
 
@@ -180,6 +176,10 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		"name", server.GetName(),
 		"namespace", server.GetNamespace(),
 		"whattodo", whattodo.String(),
+		"deploymentStatus", k8sStatus.deploymentsStatus,
+		"preMigrationJobStatus", k8sStatus.preMigrationJobStatus,
+		"postMigrationJobStatus", k8sStatus.postMigrationJobStatus,
+		"migratingImageMap", k8sStatus.migratingImageMap != nil,
 	)
 
 	switch whattodo {
@@ -476,6 +476,7 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 
 	result, err := ctrl.CreateOrUpdate(ctx, r.Client, &deploy, func() error {
 		deploy.SetAnnotations(deployAnnotations)
+		deploy.SetLabels(deployLabels)
 
 		selector := map[string]string{
 			"app.kubernetes.io/name":      appName,
@@ -486,17 +487,14 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 			MatchLabels: selector,
 		}
 
-		labels := map[string]string{
+		podLabels := map[string]string{
 			labelMastodonServer: server.GetName(),
 			labelDeployImage:    encodeDeploymentImage(image),
 		}
 		for k, v := range selector {
-			labels[k] = v
+			podLabels[k] = v
 		}
-		for k, v := range deployLabels {
-			labels[k] = v
-		}
-		deploy.SetLabels(labels)
+		deploy.Spec.Template.SetLabels(podLabels)
 
 		deploy.Spec.Replicas = &replicas
 		deploy.Spec.Template.Spec.Containers = []corev1.Container{

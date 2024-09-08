@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -70,6 +71,8 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
+	SetDefaultEventuallyTimeout(3 * time.Second)
+	SetDefaultEventuallyPollingInterval(1 * time.Second)
 })
 
 var _ = AfterSuite(func() {
@@ -78,3 +81,8 @@ var _ = AfterSuite(func() {
 	err := testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())
 })
+
+const (
+	labelMagoutAnqouNetMastodonServer = "magout.anqou.net/mastodon-server"
+	labelMagoutAnqouNetDeployImage    = "magout.anqou.net/deploy-image"
+)
