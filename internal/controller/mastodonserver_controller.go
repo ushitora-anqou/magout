@@ -307,7 +307,6 @@ func (r *MastodonServerReconciler) createMigrationJob(
 	var job batchv1.Job
 	job.SetName(buildJobName(kind, server.GetName()))
 	job.SetNamespace(server.GetNamespace())
-	ctrl.SetControllerReference(server, &job, r.Scheme)
 	job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyOnFailure
 	job.Spec.Template.Spec.Containers = []corev1.Container{
 		{
@@ -321,6 +320,10 @@ func (r *MastodonServerReconciler) createMigrationJob(
 				"bundle exec rake db:create;\nbundle exec rake db:migrate",
 			},
 		},
+	}
+
+	if err := ctrl.SetControllerReference(server, &job, r.Scheme); err != nil {
+		return err
 	}
 
 	return r.Client.Create(ctx, &job)
@@ -647,6 +650,7 @@ func (r *MastodonServerReconciler) deleteJob(ctx context.Context, name, namespac
 	})
 }
 
+//nolint:gocyclo
 func decideWhatToDo(k8sStatus *k8sStatus) (whatToDoType, error) {
 	mig := k8sStatus.migratingImageMap
 	cur := k8sStatus.currentImageMap

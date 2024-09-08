@@ -55,6 +55,7 @@ generate: manifests controller-gen
 
 .PHONY: test
 test: generate envtest ## Run tests.
+	$(MAKE) lint
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test $$(go list ./... | grep -v /e2e) -coverprofile cover.out
 
 .PHONY: lint
