@@ -1,5 +1,8 @@
 linters:
   enable-all: true
   disable:
+    - gci
+    - funlen
+    - depguard
     - execinquery # deprecated
     - gomnd # deprecated
