@@ -83,10 +83,10 @@ func encodeDeploymentImage(image string) string {
 }
 
 func getDeploymentImage(
-	ctx context.Context, client client.Client, name, namespace string,
+	ctx context.Context, cli client.Client, name, namespace string,
 ) (string, error) {
 	var deploy appsv1.Deployment
-	if err := client.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, &deploy); err != nil {
+	if err := cli.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, &deploy); err != nil {
 		return "", err
 	}
 
