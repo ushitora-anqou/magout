@@ -716,9 +716,7 @@ func decideWhatToDo(k8sStatus *k8sStatus) (whatToDoType, error) {
 
 	case preJNotFound && postJCompleted && dNotFound && mig != nil: // S8
 		fallthrough
-	case preJCompleted && postJNotFound && dReady && mig != nil && !cur.Equals(mig): // S20
-		fallthrough
-	case preJCompleted && postJNotFound && dNotReady && mig != nil && !cur.Equals(mig): // S20
+	case preJCompleted && postJNotFound && (dReady || dNotReady) && mig != nil && !cur.Equals(mig): // S20
 		fallthrough
 	case preJCompleted && postJNotFound && dNotReady && mig != nil && cur.Equals(mig): // S32
 		return shouldCreateOrUpdateDeploysWithMigratingImages, nil
