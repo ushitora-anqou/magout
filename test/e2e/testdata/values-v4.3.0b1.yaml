@@ -1,8 +1,8 @@
 fullnameOverride: "mastodon0"
 
 mastodonVersion:
-  image: ghcr.io/mastodon/mastodon:v4.2.12
-  streamingImage: ghcr.io/mastodon/mastodon:v4.2.12
+  image: ghcr.io/mastodon/mastodon:4.3.0b1
+  streamingImage: ghcr.io/mastodon/mastodon-streaming:4.3.0b1
 
 gateway:
   serverName: mastodon.test

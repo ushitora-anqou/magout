@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"time"
 
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
@@ -194,11 +195,13 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		if err := r.createMigrationJob(ctx, &server, k8sStatus.migratingImageMap, jobPreMigration); err != nil {
 			return ctrl.Result{}, err
 		}
+		return ctrl.Result{}, nil
 
 	case shouldCreatePostMigrationJob:
 		if err := r.createMigrationJob(ctx, &server, k8sStatus.migratingImageMap, jobPostMigration); err != nil {
 			return ctrl.Result{}, err
 		}
+		return ctrl.Result{}, nil
 
 	case shouldSetMigratingStatus:
 		server.Status.Migrating = &magoutv1.MastodonServerMigratingStatus{
@@ -209,22 +212,26 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		if err := r.Client.Status().Update(ctx, &server); err != nil {
 			return ctrl.Result{}, err
 		}
+		return ctrl.Result{}, nil
 
 	case shouldUnsetMigratingStatus:
 		server.Status.Migrating = nil
 		if err := r.Client.Status().Update(ctx, &server); err != nil {
 			return ctrl.Result{}, err
 		}
+		return ctrl.Result{}, nil
 
 	case shouldCreateOrUpdateDeploysWithSpec:
 		if err := r.createOrUpdateDeployments(ctx, &server, k8sStatus.specImageMap); err != nil {
 			return ctrl.Result{}, err
 		}
+		return ctrl.Result{}, nil
 
 	case shouldCreateOrUpdateDeploysWithMigratingImages:
 		if err := r.createOrUpdateDeployments(ctx, &server, k8sStatus.migratingImageMap); err != nil {
 			return ctrl.Result{}, err
 		}
+		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 
 	case shouldDeletePostMigrationJob:
 		if err := r.deleteJob(
@@ -234,6 +241,7 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		); err != nil {
 			return ctrl.Result{}, err
 		}
+		return ctrl.Result{}, nil
 
 	case shouldDeletePreMigrationJob:
 		if err := r.deleteJob(
@@ -243,14 +251,13 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		); err != nil {
 			return ctrl.Result{}, err
 		}
+		return ctrl.Result{}, nil
 
 	case shouldDoNothing:
-
-	default:
-		panic("unreachable")
+		return ctrl.Result{}, nil
 	}
 
-	return ctrl.Result{}, nil
+	panic("unreachable")
 }
 
 func (r *MastodonServerReconciler) fetchK8sStatus(
@@ -486,18 +493,18 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 	deploy.SetNamespace(server.GetNamespace())
 
 	result, err := ctrl.CreateOrUpdate(ctx, r.Client, &deploy, func() error {
-		if deployAnnotations == nil {
-			deployAnnotations = map[string]string{}
+		if deploy.ObjectMeta.Annotations == nil {
+			deploy.ObjectMeta.Annotations = map[string]string{}
 		}
 		for k, v := range deployAnnotations {
-			deployAnnotations[k] = v
+			deploy.ObjectMeta.Annotations[k] = v
 		}
 
-		if deployLabels == nil {
-			deployLabels = map[string]string{}
+		if deploy.ObjectMeta.Labels == nil {
+			deploy.ObjectMeta.Labels = map[string]string{}
 		}
 		for k, v := range deployLabels {
-			deployLabels[k] = v
+			deploy.ObjectMeta.Labels[k] = v
 		}
 
 		selector := map[string]string{

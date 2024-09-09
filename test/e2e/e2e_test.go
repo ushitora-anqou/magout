@@ -12,6 +12,10 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 var (
@@ -121,6 +125,59 @@ func checkSchemaMigrationsCount(namespace string, expected int) error {
 	return nil
 }
 
+func getDeployment(name, namespace string) (*appsv1.Deployment, error) {
+	stdout, _, err := kubectl(nil, "get", "-n", namespace, "deploy", name, "-o", "json")
+	if err != nil {
+		return nil, err
+	}
+
+	var deploy appsv1.Deployment
+	if err := json.Unmarshal(stdout, &deploy); err != nil {
+		return nil, err
+	}
+
+	return &deploy, err
+}
+
+func checkDeployResources(
+	name, namespace string,
+	expected corev1.ResourceRequirements,
+) error {
+	deploy, err := getDeployment(name, namespace)
+	if err != nil {
+		return err
+	}
+
+	got := deploy.Spec.Template.Spec.Containers[0].Resources
+	if !got.Limits.Cpu().Equal(*expected.Limits.Cpu()) {
+		return errors.New("limits cpu not equal")
+	}
+	if !got.Limits.Memory().Equal(*expected.Limits.Memory()) {
+		return errors.New("limits cpu not equal")
+	}
+	if !got.Requests.Cpu().Equal(*expected.Requests.Cpu()) {
+		return errors.New("limits cpu not equal")
+	}
+	if !got.Requests.Memory().Equal(*expected.Requests.Memory()) {
+		return errors.New("limits cpu not equal")
+	}
+
+	return nil
+}
+
+func checkDeployAnnotation(name, namespace, key, expectedValue string) error {
+	deploy, err := getDeployment(name, namespace)
+	if err != nil {
+		return err
+	}
+
+	if deploy.GetAnnotations()[key] != expectedValue {
+		return errors.New("annotation not matched")
+	}
+
+	return nil
+}
+
 var _ = Describe("controller", Ordered, func() {
 	Context("Operator", func() {
 		It("should run successfully", func() {
@@ -146,18 +203,85 @@ var _ = Describe("controller", Ordered, func() {
 				if err := waitDeployAvailable("mastodon0-gateway", namespace); err != nil {
 					return err
 				}
+
+				if err := checkDeployResources("mastodon0-web", "e2e", corev1.ResourceRequirements{
+					Limits: corev1.ResourceList{
+						corev1.ResourceCPU:    resource.MustParse("1"),
+						corev1.ResourceMemory: resource.MustParse("1000Mi"),
+					},
+					Requests: corev1.ResourceList{
+						corev1.ResourceCPU:    resource.MustParse("100m"),
+						corev1.ResourceMemory: resource.MustParse("100Mi"),
+					},
+				}); err != nil {
+					return err
+				}
+
+				if err := checkDeployAnnotation("mastodon0-sidekiq", namespace,
+					"test.magout.anqou.net/role", "sidekiq"); err != nil {
+					return err
+				}
+				if err := checkDeployAnnotation("mastodon0-streaming", namespace,
+					"test.magout.anqou.net/role", "streaming"); err != nil {
+					return err
+				}
+				if err := checkDeployAnnotation("mastodon0-web", namespace,
+					"test.magout.anqou.net/role", "web"); err != nil {
+					return err
+				}
+
 				if err := httpGet("http://mastodon0-gateway.e2e.svc/health"); err != nil {
 					return err
 				}
+
 				if err := checkMastodonVersion("mastodon.test",
 					"http://mastodon0-gateway.e2e.svc", "4.2.12"); err != nil {
 					return err
 				}
+
 				if err := checkSchemaMigrationsCount(namespace, 422); err != nil {
 					return err
 				}
 				return nil
 			}).Should(Succeed())
+
+			_, _, err = helm(nil, "upgrade", "--install", "--namespace", namespace,
+				"magout-mastodon-server", "../../charts/magout-mastodon-server", "--wait",
+				"-f", "testdata/values-v4.3.0b1.yaml")
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(func() error {
+				return checkSchemaMigrationsCount(namespace, 460)
+			}).Should(Succeed())
+
+			Eventually(func() error {
+				if err := waitDeployAvailable("mastodon0-web", namespace); err != nil {
+					return err
+				}
+				if err := waitDeployAvailable("mastodon0-sidekiq", namespace); err != nil {
+					return err
+				}
+				if err := waitDeployAvailable("mastodon0-streaming", namespace); err != nil {
+					return err
+				}
+				if err := waitDeployAvailable("mastodon0-gateway", namespace); err != nil {
+					return err
+				}
+
+				if err := httpGet("http://mastodon0-gateway.e2e.svc/health"); err != nil {
+					return err
+				}
+
+				if err := checkSchemaMigrationsCount(namespace, 468); err != nil {
+					return err
+				}
+				return nil
+			}).Should(Succeed())
+
+			Eventually(func() error {
+				return checkMastodonVersion("mastodon.test",
+					"http://mastodon0-gateway.e2e.svc", "4.3.0-beta.1")
+			}, "300s", "10s").Should(Succeed())
 		})
 	})
 })
