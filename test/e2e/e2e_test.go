@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -58,6 +59,17 @@ func helm(input []byte, args ...string) ([]byte, []byte, error) {
 	fields := strings.Fields(helmPrefix)
 	fields = append(fields, args...)
 	return command(input, fields...)
+}
+
+func waitNotFound(kind, name, namespace string) error {
+	_, stderr, err := kubectl(nil, "get", "-n", namespace, kind, name)
+	if strings.Contains(string(stderr), fmt.Sprintf("\"%s\" not found", name)) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return errors.New("found")
 }
 
 func waitCondition(kind, name, namespace, condition string) error {
@@ -281,7 +293,23 @@ var _ = Describe("controller", Ordered, func() {
 			Eventually(func() error {
 				return checkMastodonVersion("mastodon.test",
 					"http://mastodon0-gateway.e2e.svc", "4.3.0-beta.1")
-			}, "300s", "10s").Should(Succeed())
+			}).Should(Succeed())
+
+			_, _, err = kubectl(nil, "delete", "-n", namespace, "mastodonserver", "mastodon0")
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(func() error {
+				if err := waitNotFound("deploy", "mastodon0-sidekiq", namespace); err != nil {
+					return err
+				}
+				if err := waitNotFound("deploy", "mastodon0-streaming", namespace); err != nil {
+					return err
+				}
+				if err := waitNotFound("deploy", "mastodon0-web", namespace); err != nil {
+					return err
+				}
+				return nil
+			}).Should(Succeed())
 		})
 	})
 })
