@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -95,6 +96,31 @@ func checkMastodonVersion(host, endpoint, expected string) error {
 	return nil
 }
 
+func checkSchemaMigrationsCount(namespace string, expected int) error {
+	stdout, _, err := kubectl(nil, "exec", "-n", namespace, "postgres-0", "--",
+		"psql", "-U", "mastodon", "mastodon_production", "-c",
+		"SELECT COUNT(version) FROM schema_migrations;")
+	if err != nil {
+		return err
+	}
+
+	result := strings.Split(string(stdout), "\n")
+	if len(result) <= 2 {
+		return errors.New("invalid output of psql")
+	}
+
+	count, err := strconv.Atoi(strings.TrimSpace(result[2]))
+	if err != nil {
+		return errors.New("failed to parse the result")
+	}
+
+	if count != expected {
+		return errors.New("count not expected")
+	}
+
+	return nil
+}
+
 var _ = Describe("controller", Ordered, func() {
 	Context("Operator", func() {
 		It("should run successfully", func() {
@@ -125,6 +151,9 @@ var _ = Describe("controller", Ordered, func() {
 				}
 				if err := checkMastodonVersion("mastodon.test",
 					"http://mastodon0-gateway.e2e.svc", "4.2.12"); err != nil {
+					return err
+				}
+				if err := checkSchemaMigrationsCount(namespace, 422); err != nil {
 					return err
 				}
 				return nil

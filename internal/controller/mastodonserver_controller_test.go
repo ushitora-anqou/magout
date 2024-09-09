@@ -118,8 +118,7 @@ var _ = Describe("MastodonServer Controller", func() {
 			}, &job)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(job.Spec.Template.Spec.Containers[0].Image).To(Equal(webImage))
-			Expect(job.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("SKIP_POST_DEPLOYMENT_MIGRATIONS"))
-			Expect(job.Spec.Template.Spec.Containers[0].Env[0].Value).To(Equal("true"))
+			Expect(job.Spec.Template.Spec.Containers[0].Env).To(BeNil())
 
 			By("Making the post migration job completed")
 			job.Status.Succeeded = 1
@@ -211,7 +210,8 @@ var _ = Describe("MastodonServer Controller", func() {
 			}, &job)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(job.Spec.Template.Spec.Containers[0].Image).To(Equal(webImage2))
-			Expect(job.Spec.Template.Spec.Containers[0].Env).To(BeNil())
+			Expect(job.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("SKIP_POST_DEPLOYMENT_MIGRATIONS"))
+			Expect(job.Spec.Template.Spec.Containers[0].Env[0].Value).To(Equal("true"))
 
 			By("Making the pre migration job completed")
 			job.Status.Succeeded = 1

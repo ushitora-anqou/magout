@@ -304,10 +304,10 @@ func (r *MastodonServerReconciler) createMigrationJob(
 	env := []corev1.EnvVar{}
 	switch kind {
 	case jobPreMigration:
-	case jobPostMigration:
 		env = append(env, corev1.EnvVar{
 			Name: "SKIP_POST_DEPLOYMENT_MIGRATIONS", Value: "true",
 		})
+	case jobPostMigration:
 	default:
 		return errors.New("invalid job kind")
 	}
