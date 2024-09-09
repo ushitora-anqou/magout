@@ -1,3 +1,9 @@
+#fullnameOverride: ""
+
+mastodonVersion:
+  #image: ghcr.io/mastodon/mastodon:latest
+  #streamingImage: ghcr.io/mastodon/mastodon-streaming:latest
+
 gateway:
   #serverName: "example.com"
   deploy:
@@ -10,7 +16,6 @@ gateway:
 
 mastodonServer:
   sidekiq:
-    #image: ghcr.io/mastodon/mastodon:latest
     #replicas: 1
     #labels: {}
     #annotations: {}
@@ -18,14 +23,12 @@ mastodonServer:
     #resources: {}
   web:
     #replicas: 1
-    #image: ghcr.io/mastodon/mastodon:latest
     #labels: {}
     #annotations: {}
     #envFrom: {}
     #resources: {}
   streaming:
     #replicas: 1
-    #image: ghcr.io/mastodon/mastodon:latest
     #labels: {}
     #annotations: {}
     #envFrom: {}

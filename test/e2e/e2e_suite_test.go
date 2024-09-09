@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -11,6 +12,10 @@ import (
 // Run e2e tests using the Ginkgo runner.
 func TestE2E(t *testing.T) {
 	RegisterFailHandler(Fail)
+
+	SetDefaultEventuallyTimeout(100 * time.Second)
+	SetDefaultEventuallyPollingInterval(1 * time.Second)
+
 	_, _ = fmt.Fprintf(GinkgoWriter, "Starting magout suite\n")
 	RunSpecs(t, "e2e suite")
 }

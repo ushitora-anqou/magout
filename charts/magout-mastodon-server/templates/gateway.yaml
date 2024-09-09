@@ -16,6 +16,17 @@ spec:
         app.kubernetes.io/component: gateway
         app.kubernetes.io/part-of: mastodon
     spec:
+      initContainers:
+        - name: copy-assets
+          image: {{ .Values.mastodonVersion.image }}
+          command:
+            - bash
+            - -c
+            - |
+              cp -ra /opt/mastodon/public/* /mnt/public/
+          volumeMounts:
+            - name: mnt-public
+              mountPath: /mnt/public
       containers:
         - name: nginx
           image: "{{ .Values.gateway.deploy.image }}"
@@ -25,6 +36,22 @@ spec:
               protocol: TCP
           resources:
             {{- toYaml .Values.gateway.deploy.resources | nindent 12 }}
+          volumeMounts:
+            - name: mnt-public
+              mountPath: /mnt/public
+              readyOnly: true
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+              readyOnly: true
+      volumes:
+        - name: mnt-public
+          emptyDir: {}
+        - name: nginx-conf
+          configMap:
+            name: {{ include "magout-mastodon-server.fullname" . }}-gateway-nginx-conf
+            items:
+              - key: nginx.conf
+                path: mastodon.conf
 ---
 apiVersion: v1
 kind: Service

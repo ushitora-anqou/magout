@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   sidekiq:
-    image: {{ .Values.mastodonServer.sidekiq.image }}
+    image: {{ .Values.mastodonVersion.image }}
     {{- with .Values.mastodonServer.sidekiq.replicas }}
     replicas: {{ . }}
     {{- end }}
@@ -26,7 +26,7 @@ spec:
       {{- toYaml . | nindent 6 }}
     {{- end }}
   web:
-    image: {{ .Values.mastodonServer.web.image }}
+    image: {{ .Values.mastodonVersion.image }}
     {{- with .Values.mastodonServer.web.replicas }}
     replicas: {{ . }}
     {{- end }}
@@ -47,7 +47,7 @@ spec:
       {{- toYaml . | nindent 6 }}
     {{- end }}
   streaming:
-    image: {{ .Values.mastodonServer.streaming.image }}
+    image: {{ .Values.mastodonVersion.streamingImage }}
     {{- with .Values.mastodonServer.streaming.replicas }}
     replicas: {{ . }}
     {{- end }}
