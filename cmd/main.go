@@ -39,9 +39,7 @@ var (
 )
 
 const (
-	annotRestartWeb       = "magout.anqou.net/restart-time-web"
-	annotRestartSidekiq   = "magout.anqou.net/restart-time-sidekiq"
-	annotRestartStreaming = "magout.anqou.net/restart-time-streaming"
+	annotRestartTime = "magout.anqou.net/restart-time"
 )
 
 func init() {
@@ -52,11 +50,14 @@ func init() {
 }
 
 func mainRestart() error {
+	fs := flag.NewFlagSet("restart", flag.ExitOnError)
 	var name, namespace, target string
-	flag.StringVar(&name, "name", "", "")
-	flag.StringVar(&namespace, "namespace", "", "")
-	flag.StringVar(&target, "target", "", "")
-	flag.Parse()
+	fs.StringVar(&name, "name", "", "")
+	fs.StringVar(&namespace, "namespace", "", "")
+	fs.StringVar(&target, "target", "", "")
+	if err := fs.Parse(os.Args[2:]); err != nil {
+		return err
+	}
 
 	cli, err := client.New(config.GetConfigOrDie(), client.Options{Scheme: scheme})
 	if err != nil {
@@ -70,17 +71,23 @@ func mainRestart() error {
 		return fmt.Errorf("couldn't get MastodonServer: %w", err)
 	}
 
-	if mastodonServer.Annotations == nil {
-		mastodonServer.Annotations = map[string]string{}
-	}
 	now := time.Now().Format(time.RFC3339Nano)
 	switch target {
 	case "web":
-		mastodonServer.Annotations[annotRestartWeb] = now
+		if mastodonServer.Spec.Web.PodAnnotations == nil {
+			mastodonServer.Spec.Web.PodAnnotations = map[string]string{}
+		}
+		mastodonServer.Spec.Web.PodAnnotations[annotRestartTime] = now
 	case "sidekiq":
-		mastodonServer.Annotations[annotRestartSidekiq] = now
+		if mastodonServer.Spec.Sidekiq.PodAnnotations == nil {
+			mastodonServer.Spec.Sidekiq.PodAnnotations = map[string]string{}
+		}
+		mastodonServer.Spec.Sidekiq.PodAnnotations[annotRestartTime] = now
 	case "streaming":
-		mastodonServer.Annotations[annotRestartStreaming] = now
+		if mastodonServer.Spec.Streaming.PodAnnotations == nil {
+			mastodonServer.Spec.Streaming.PodAnnotations = map[string]string{}
+		}
+		mastodonServer.Spec.Streaming.PodAnnotations[annotRestartTime] = now
 	}
 
 	if err := cli.Update(ctx, &mastodonServer); err != nil {

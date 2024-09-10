@@ -410,14 +410,17 @@ func (r *MastodonServerReconciler) createOrUpdatePeriodicRestartCronJob(
 		} else {
 			cronJob.Spec.Schedule = spec.Schedule
 			cronJob.Spec.TimeZone = spec.TimeZone
+			fals := false
+			cronJob.Spec.Suspend = &fals
 		}
 		cronJob.Spec.ConcurrencyPolicy = batchv1.ForbidConcurrent
 		cronJob.Spec.JobTemplate.Spec.Template.Spec.ServiceAccountName = r.restartServiceAccountName
 		cronJob.Spec.JobTemplate.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyOnFailure
 		cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers = []corev1.Container{
 			{
-				Name:  "restart",
-				Image: r.runningImage,
+				Name:            "restart",
+				Image:           r.runningImage,
+				ImagePullPolicy: corev1.PullIfNotPresent,
 				Args: []string{
 					"restart",
 					"--name", server.GetName(),
@@ -464,6 +467,7 @@ func (r *MastodonServerReconciler) createOrUpdateSidekiqDeployment(
 		componentSidekiq,
 		spec.Annotations,
 		spec.Labels,
+		spec.PodAnnotations,
 		spec.Replicas,
 		image,
 		spec.Resources,
@@ -489,6 +493,7 @@ func (r *MastodonServerReconciler) createOrUpdateStreamingDeployment(
 		componentStreaming,
 		spec.Annotations,
 		spec.Labels,
+		spec.PodAnnotations,
 		spec.Replicas,
 		image,
 		spec.Resources,
@@ -523,6 +528,7 @@ func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 		componentWeb,
 		spec.Annotations,
 		spec.Labels,
+		spec.PodAnnotations,
 		spec.Replicas,
 		image,
 		spec.Resources,
@@ -566,6 +572,7 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 	component componentType,
 	deployAnnotations map[string]string,
 	deployLabels map[string]string,
+	podAnnotations map[string]string,
 	replicas int32,
 	image string,
 	resources corev1.ResourceRequirements,
@@ -606,14 +613,21 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 			MatchLabels: selector,
 		}
 
-		podLabels := map[string]string{
-			labelMastodonServer: server.GetName(),
-			labelDeployImage:    encodeDeploymentImage(image),
+		if deploy.Spec.Template.Labels == nil {
+			deploy.Spec.Template.Labels = map[string]string{}
 		}
+		deploy.Spec.Template.Labels[labelMastodonServer] = server.GetName()
+		deploy.Spec.Template.Labels[labelDeployImage] = encodeDeploymentImage(image)
 		for k, v := range selector {
-			podLabels[k] = v
+			deploy.Spec.Template.Labels[k] = v
 		}
-		deploy.Spec.Template.SetLabels(podLabels)
+
+		if deploy.Spec.Template.Annotations == nil {
+			deploy.Spec.Template.Annotations = map[string]string{}
+		}
+		for k, v := range podAnnotations {
+			deploy.Spec.Template.Annotations[k] = v
+		}
 
 		deploy.Spec.Replicas = &replicas
 		deploy.Spec.Template.Spec.Containers = []corev1.Container{

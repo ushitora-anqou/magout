@@ -107,6 +107,13 @@ func (in *MastodonServerSidekiqSpec) DeepCopyInto(out *MastodonServerSidekiqSpec
 			(*out)[key] = val
 		}
 	}
+	if in.PodAnnotations != nil {
+		in, out := &in.PodAnnotations, &out.PodAnnotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	if in.PeriodicRestart != nil {
 		in, out := &in.PeriodicRestart, &out.PeriodicRestart
 		*out = new(PeriodicRestartSpec)
@@ -187,6 +194,13 @@ func (in *MastodonServerStreamingSpec) DeepCopyInto(out *MastodonServerStreaming
 			(*out)[key] = val
 		}
 	}
+	if in.PodAnnotations != nil {
+		in, out := &in.PodAnnotations, &out.PodAnnotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	if in.PeriodicRestart != nil {
 		in, out := &in.PeriodicRestart, &out.PeriodicRestart
 		*out = new(PeriodicRestartSpec)
@@ -224,6 +238,13 @@ func (in *MastodonServerWebSpec) DeepCopyInto(out *MastodonServerWebSpec) {
 	}
 	if in.Annotations != nil {
 		in, out := &in.Annotations, &out.Annotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
+	if in.PodAnnotations != nil {
+		in, out := &in.PodAnnotations, &out.PodAnnotations
 		*out = make(map[string]string, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val

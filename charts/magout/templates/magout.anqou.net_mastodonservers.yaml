@@ -105,6 +105,10 @@ spec:
                     required:
                     - schedule
                     type: object
+                  podAnnotations:
+                    additionalProperties:
+                      type: string
+                    type: object
                   replicas:
                     default: 1
                     format: int32
@@ -238,6 +242,10 @@ spec:
                     required:
                     - schedule
                     type: object
+                  podAnnotations:
+                    additionalProperties:
+                      type: string
+                    type: object
                   replicas:
                     default: 1
                     format: int32
@@ -370,6 +378,10 @@ spec:
                         type: string
                     required:
                     - schedule
+                    type: object
+                  podAnnotations:
+                    additionalProperties:
+                      type: string
                     type: object
                   replicas:
                     default: 1

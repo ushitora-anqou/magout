@@ -18,6 +18,7 @@ type MastodonServerSidekiqSpec struct {
 	EnvFrom         []corev1.EnvFromSource      `json:"envFrom,omitempty"`
 	Labels          map[string]string           `json:"labels,omitempty"`
 	Annotations     map[string]string           `json:"annotations,omitempty"`
+	PodAnnotations  map[string]string           `json:"podAnnotations,omitempty"`
 	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
 	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
 
@@ -30,6 +31,7 @@ type MastodonServerStreamingSpec struct {
 	EnvFrom         []corev1.EnvFromSource      `json:"envFrom,omitempty"`
 	Labels          map[string]string           `json:"labels,omitempty"`
 	Annotations     map[string]string           `json:"annotations,omitempty"`
+	PodAnnotations  map[string]string           `json:"podAnnotations,omitempty"`
 	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
 	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
 
@@ -42,6 +44,7 @@ type MastodonServerWebSpec struct {
 	EnvFrom         []corev1.EnvFromSource      `json:"envFrom,omitempty"`
 	Labels          map[string]string           `json:"labels,omitempty"`
 	Annotations     map[string]string           `json:"annotations,omitempty"`
+	PodAnnotations  map[string]string           `json:"podAnnotations,omitempty"`
 	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
 	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
 
