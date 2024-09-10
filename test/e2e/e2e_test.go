@@ -50,11 +50,6 @@ func kubectl(input []byte, args ...string) ([]byte, []byte, error) {
 	return command(input, fields...)
 }
 
-func kubectlApply(fileName string) error {
-	_, _, err := kubectl(nil, "apply", "-f", "testdata/"+fileName)
-	return err
-}
-
 func helm(input []byte, args ...string) ([]byte, []byte, error) {
 	fields := strings.Fields(helmPrefix)
 	fields = append(fields, args...)

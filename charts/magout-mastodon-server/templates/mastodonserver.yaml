@@ -25,6 +25,10 @@ spec:
     resources:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- with .Values.mastodonServer.sidekiq.periodicRestart }}
+    periodicRestart:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
   web:
     image: {{ .Values.mastodonVersion.image }}
     {{- with .Values.mastodonServer.web.replicas }}
@@ -46,6 +50,10 @@ spec:
     resources:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- with .Values.mastodonServer.web.periodicRestart }}
+    periodicRestart:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
   streaming:
     image: {{ .Values.mastodonVersion.streamingImage }}
     {{- with .Values.mastodonServer.streaming.replicas }}
@@ -65,5 +73,9 @@ spec:
     {{- end }}
     {{- with .Values.mastodonServer.streaming.resources }}
     resources:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.streaming.periodicRestart }}
+    periodicRestart:
       {{- toYaml . | nindent 6 }}
     {{- end }}

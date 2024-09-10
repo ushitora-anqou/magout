@@ -26,6 +26,7 @@ linters-settings:
 linters:
   enable-all: true
   disable:
+    - gocyclo
     - unparam
     - nlreturn
     - godox
@@ -43,3 +44,9 @@ linters:
     - depguard
     - execinquery # deprecated
     - gomnd # deprecated
+
+issues:
+  exclude-rules:
+    - path: test/e2e
+      linters:
+        - gosec

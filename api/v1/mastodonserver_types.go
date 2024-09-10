@@ -9,7 +9,8 @@ import (
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 type PeriodicRestartSpec struct {
-	Schedule string `json:"schedule,omitempty"`
+	Schedule string  `json:"schedule"`
+	TimeZone *string `json:"timeZone,omitempty"`
 }
 
 type MastodonServerSidekiqSpec struct {

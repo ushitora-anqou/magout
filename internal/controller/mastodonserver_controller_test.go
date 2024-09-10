@@ -75,10 +75,12 @@ var _ = Describe("MastodonServer Controller", func() {
 			streamingImage2 := "streaming-image2"
 			streamingImage2Base64 := "c3RyZWFtaW5nLWltYWdlMg"
 
-			controllerReconciler := &controller.MastodonServerReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
-			}
+			controllerReconciler := controller.NewMastodonServerReconciler(
+				k8sClient,
+				k8sClient.Scheme(),
+				"test-image",
+				"rest-restart-sa",
+			)
 
 			By("Creating a MastodonServer resource")
 			var err error

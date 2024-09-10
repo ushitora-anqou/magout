@@ -1,11 +1,11 @@
-#fullnameOverride: ""
+# fullnameOverride: ""
 
 mastodonVersion:
-  #image: ghcr.io/mastodon/mastodon:latest
-  #streamingImage: ghcr.io/mastodon/mastodon-streaming:latest
+  # image: ghcr.io/mastodon/mastodon:latest
+  # streamingImage: ghcr.io/mastodon/mastodon-streaming:latest
 
 gateway:
-  #serverName: "example.com"
+  # serverName: "example.com"
   deploy:
     replicaCount: 1
     image: nginx:latest
@@ -16,20 +16,29 @@ gateway:
 
 mastodonServer:
   sidekiq:
-    #replicas: 1
-    #labels: {}
-    #annotations: {}
-    #envFrom: {}
-    #resources: {}
+    # replicas: 1
+    # labels: {}
+    # annotations: {}
+    # envFrom: {}
+    # resources: {}
+    # periodicRestart:
+    #   schedule: "0 0 * * *"
+    #   timeZone: UTC
   web:
-    #replicas: 1
-    #labels: {}
-    #annotations: {}
-    #envFrom: {}
-    #resources: {}
+    # replicas: 1
+    # labels: {}
+    # annotations: {}
+    # envFrom: {}
+    # resources: {}
+    # periodicRestart:
+    #   schedule: "0 0 * * *"
+    #   timeZone: UTC
   streaming:
-    #replicas: 1
-    #labels: {}
-    #annotations: {}
-    #envFrom: {}
-    #resources: {}
+    # replicas: 1
+    # labels: {}
+    # annotations: {}
+    # envFrom: {}
+    # resources: {}
+    # periodicRestart:
+    #   schedule: "0 0 * * *"
+    #   timeZone: UTC

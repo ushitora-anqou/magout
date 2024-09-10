@@ -31,6 +31,7 @@ import (
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=batch,resources=cronjobs,verbs=get;list;watch;create;update;patch;delete
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=deployStatusType
 //go:generate go run golang.org/x/tools/cmd/stringer -type=jobStatusType
@@ -86,6 +87,11 @@ func buildJobName(kind jobType, mastodonServerName string) string {
 	return fmt.Sprintf("%s-%s", mastodonServerName, string(kind))
 }
 
+func buildPeriodicRestartCronJobName(component componentType, mastodonServerName string) string {
+	// FIXME: truncate properly
+	return fmt.Sprintf("%s-restart-%s", mastodonServerName, string(component))
+}
+
 func encodeDeploymentImage(image string) string {
 	return base64.RawURLEncoding.EncodeToString([]byte(image))
 }
@@ -124,8 +130,24 @@ type k8sStatus struct {
 
 // MastodonServerReconciler reconciles a MastodonServer object.
 type MastodonServerReconciler struct {
-	Client client.Client
-	Scheme *runtime.Scheme
+	Client                    client.Client
+	Scheme                    *runtime.Scheme
+	runningImage              string
+	restartServiceAccountName string
+}
+
+func NewMastodonServerReconciler(
+	cli client.Client,
+	scheme *runtime.Scheme,
+	runningImage string,
+	restartServiceAccountName string,
+) *MastodonServerReconciler {
+	return &MastodonServerReconciler{
+		Client:                    cli,
+		Scheme:                    scheme,
+		runningImage:              runningImage,
+		restartServiceAccountName: restartServiceAccountName,
+	}
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -134,6 +156,7 @@ func (r *MastodonServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&magoutv1.MastodonServer{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&batchv1.Job{}).
+		Owns(&batchv1.CronJob{}).
 		Complete(r)
 }
 
@@ -223,6 +246,9 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	case shouldCreateOrUpdateDeploysWithSpec:
 		if err := r.createOrUpdateDeployments(ctx, &server, k8sStatus.specImageMap); err != nil {
+			return ctrl.Result{}, err
+		}
+		if err := r.createOrUpdateCronJobs(ctx, &server); err != nil {
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
@@ -342,6 +368,70 @@ func (r *MastodonServerReconciler) createMigrationJob(
 	}
 
 	return r.Client.Create(ctx, &job)
+}
+
+func (r *MastodonServerReconciler) createOrUpdateCronJobs(
+	ctx context.Context,
+	server *magoutv1.MastodonServer,
+) error {
+	if err := r.createOrUpdatePeriodicRestartCronJob(
+		ctx, server, componentWeb, server.Spec.Web.PeriodicRestart,
+	); err != nil {
+		return err
+	}
+	if err := r.createOrUpdatePeriodicRestartCronJob(
+		ctx, server, componentSidekiq, server.Spec.Sidekiq.PeriodicRestart,
+	); err != nil {
+		return err
+	}
+	if err := r.createOrUpdatePeriodicRestartCronJob(
+		ctx, server, componentStreaming, server.Spec.Streaming.PeriodicRestart,
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *MastodonServerReconciler) createOrUpdatePeriodicRestartCronJob(
+	ctx context.Context,
+	server *magoutv1.MastodonServer,
+	component componentType,
+	spec *magoutv1.PeriodicRestartSpec,
+) error {
+	var cronJob batchv1.CronJob
+	cronJob.SetName(buildPeriodicRestartCronJobName(component, server.GetName()))
+	cronJob.SetNamespace(server.GetNamespace())
+
+	if _, err := ctrl.CreateOrUpdate(ctx, r.Client, &cronJob, func() error {
+		if spec == nil {
+			cronJob.Spec.Schedule = "0 0 * * *"
+			tru := true
+			cronJob.Spec.Suspend = &tru
+		} else {
+			cronJob.Spec.Schedule = spec.Schedule
+			cronJob.Spec.TimeZone = spec.TimeZone
+		}
+		cronJob.Spec.ConcurrencyPolicy = batchv1.ForbidConcurrent
+		cronJob.Spec.JobTemplate.Spec.Template.Spec.ServiceAccountName = r.restartServiceAccountName
+		cronJob.Spec.JobTemplate.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyOnFailure
+		cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers = []corev1.Container{
+			{
+				Name:  "restart",
+				Image: r.runningImage,
+				Args: []string{
+					"restart",
+					"--name", server.GetName(),
+					"--namespace", server.GetNamespace(),
+					"--target", string(component),
+				},
+			},
+		}
+		return ctrl.SetControllerReference(server, &cronJob, r.Scheme)
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *MastodonServerReconciler) createOrUpdateDeployments(
@@ -676,7 +766,6 @@ func (r *MastodonServerReconciler) deleteJob(ctx context.Context, name, namespac
 	})
 }
 
-//nolint:gocyclo
 func decideWhatToDo(k8sStatus *k8sStatus) (whatToDoType, error) {
 	mig := k8sStatus.migratingImageMap
 	cur := k8sStatus.currentImageMap
