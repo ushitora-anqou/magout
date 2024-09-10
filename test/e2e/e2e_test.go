@@ -290,21 +290,21 @@ var _ = Describe("controller", Ordered, func() {
 					"http://mastodon0-gateway.e2e.svc", "4.3.0-beta.1")
 			}).Should(Succeed())
 
-			//_, _, err = kubectl(nil, "delete", "-n", namespace, "mastodonserver", "mastodon0")
-			//Expect(err).NotTo(HaveOccurred())
+			_, _, err = kubectl(nil, "delete", "-n", namespace, "mastodonserver", "mastodon0")
+			Expect(err).NotTo(HaveOccurred())
 
-			//Eventually(func() error {
-			//	if err := waitNotFound("deploy", "mastodon0-sidekiq", namespace); err != nil {
-			//		return err
-			//	}
-			//	if err := waitNotFound("deploy", "mastodon0-streaming", namespace); err != nil {
-			//		return err
-			//	}
-			//	if err := waitNotFound("deploy", "mastodon0-web", namespace); err != nil {
-			//		return err
-			//	}
-			//	return nil
-			//}).Should(Succeed())
+			Eventually(func() error {
+				if err := waitNotFound("deploy", "mastodon0-sidekiq", namespace); err != nil {
+					return err
+				}
+				if err := waitNotFound("deploy", "mastodon0-streaming", namespace); err != nil {
+					return err
+				}
+				if err := waitNotFound("deploy", "mastodon0-web", namespace); err != nil {
+					return err
+				}
+				return nil
+			}).Should(Succeed())
 		})
 	})
 })
