@@ -1,0 +1,3 @@
+owner: ushitora-anqou
+git-repo: magout
+release-name-template: "{{ .Name }}-chart-v{{ .Version }}"
