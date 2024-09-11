@@ -235,10 +235,12 @@ func main() {
 	if len(os.Args) >= 2 && os.Args[1] == "restart" {
 		if err := mainRestart(); err != nil {
 			slog.Error("subcommand restart failed", "error", err)
+			os.Exit(1)
 		}
 	} else {
 		if err := mainController(); err != nil {
 			slog.Error("subcommand controller failed", "error", err)
+			os.Exit(1)
 		}
 	}
 }

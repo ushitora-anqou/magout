@@ -1,0 +1,42 @@
+fullnameOverride: "mastodon0"
+
+mastodonVersion:
+  image: ghcr.io/mastodon/mastodon:4.3.0b1
+  streamingImage: ghcr.io/mastodon/mastodon-streaming:4.3.0b1
+
+gateway:
+  serverName: mastodon.test
+
+mastodonServer:
+  sidekiq:
+    annotations:
+      test.magout.anqou.net/role: sidekiq
+    envFrom:
+      - secretRef:
+          name: secret-env
+    periodicRestart:
+      schedule: "* * * * *"
+      timeZone: UTC
+  streaming:
+    annotations:
+      test.magout.anqou.net/role: streaming
+    envFrom:
+      - secretRef:
+          name: secret-env
+  web:
+    envFrom:
+      - secretRef:
+          name: secret-env
+    replicas: 1
+    annotations:
+      test.magout.anqou.net/role: web
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
+      limits:
+        cpu: "1"
+        memory: 1000Mi
+    periodicRestart:
+      schedule: "* * * * *"
+      timeZone: UTC

@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -185,6 +186,28 @@ func checkDeployAnnotation(name, namespace, key, expectedValue string) error {
 	return nil
 }
 
+func checkPodAge(namespace, component string, smallerThan time.Duration) error {
+	stdout, _, err := kubectl(nil, "get", "pod", "-n", namespace,
+		"-l", "app.kubernetes.io/component="+component, "-o", "json")
+	if err != nil {
+		return err
+	}
+
+	var podList corev1.PodList
+	if err := json.Unmarshal(stdout, &podList); err != nil {
+		return err
+	}
+
+	for _, pod := range podList.Items {
+		dur := time.Now().UTC().Sub(pod.GetCreationTimestamp().Time)
+		if dur >= smallerThan {
+			return errors.New("pod is too old")
+		}
+	}
+
+	return nil
+}
+
 var _ = Describe("controller", Ordered, func() {
 	Context("Operator", func() {
 		It("should run successfully", func() {
@@ -289,6 +312,24 @@ var _ = Describe("controller", Ordered, func() {
 				return checkMastodonVersion("mastodon.test",
 					"http://mastodon0-gateway.e2e.svc", "4.3.0-beta.1")
 			}).Should(Succeed())
+
+			_, _, err = helm(nil, "upgrade", "--install", "--namespace", namespace,
+				"magout-mastodon-server", "../../charts/magout-mastodon-server", "--wait",
+				"-f", "testdata/values-v4.3.0b1-restart.yaml")
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(func() error {
+				return checkPodAge(namespace, "web", 30*time.Second)
+			}).Should(Succeed())
+			Consistently(func() error {
+				return checkPodAge(namespace, "web", 90*time.Second)
+			}, "100s", "1s").Should(Succeed())
+			Eventually(func() error {
+				return checkPodAge(namespace, "sidekiq", 30*time.Second)
+			}).Should(Succeed())
+			Consistently(func() error {
+				return checkPodAge(namespace, "sidekiq", 90*time.Second)
+			}, "100s", "1s").Should(Succeed())
 
 			_, _, err = kubectl(nil, "delete", "-n", namespace, "mastodonserver", "mastodon0")
 			Expect(err).NotTo(HaveOccurred())
