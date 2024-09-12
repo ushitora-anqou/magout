@@ -5,9 +5,15 @@ on:
     branches:
       - "master"
 jobs:
-  build:
+  e2e-test:
     name: "test"
     runs-on: "ubuntu-22.04"
+    strategy:
+      fail-fast: false
+      matrix:
+        kubernetes_version: ["1.31.0", "1.30.4", "1.29.8"]
+    env:
+      KUBERNETES_VERSION: ${{ matrix.kubernetes_version }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
