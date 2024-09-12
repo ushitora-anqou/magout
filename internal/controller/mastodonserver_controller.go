@@ -605,9 +605,10 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 		}
 
 		selector := map[string]string{
-			"app.kubernetes.io/name":      appName,
-			"app.kubernetes.io/component": string(component),
-			"app.kubernetes.io/part-of":   "mastodon",
+			"app.kubernetes.io/name":           appName,
+			"app.kubernetes.io/component":      string(component),
+			"app.kubernetes.io/part-of":        "mastodon",
+			"magout.anqou.net/mastodon-server": server.GetName(),
 		}
 		deploy.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: selector,

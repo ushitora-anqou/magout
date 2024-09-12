@@ -186,9 +186,10 @@ func checkDeployAnnotation(name, namespace, key, expectedValue string) error {
 	return nil
 }
 
-func checkPodAge(namespace, component string, smallerThan time.Duration) error {
-	stdout, _, err := kubectl(nil, "get", "pod", "-n", namespace,
-		"-l", "app.kubernetes.io/component="+component, "-o", "json")
+func checkPodAge(mastodonServerName, namespace, component string, smallerThan time.Duration) error {
+	stdout, _, err := kubectl(nil, "get", "pod", "-n", namespace, "-o", "json", "-l",
+		fmt.Sprintf("app.kubernetes.io/component=%s,magout.anqou.net/mastodon-server=%s",
+			component, mastodonServerName))
 	if err != nil {
 		return err
 	}
@@ -319,16 +320,16 @@ var _ = Describe("controller", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(func() error {
-				return checkPodAge(namespace, "web", 30*time.Second)
+				return checkPodAge("mastodon0", namespace, "web", 30*time.Second)
 			}).Should(Succeed())
 			Consistently(func() error {
-				return checkPodAge(namespace, "web", 90*time.Second)
+				return checkPodAge("mastodon0", namespace, "web", 90*time.Second)
 			}, "100s", "1s").Should(Succeed())
 			Eventually(func() error {
-				return checkPodAge(namespace, "sidekiq", 30*time.Second)
+				return checkPodAge("mastodon0", namespace, "sidekiq", 30*time.Second)
 			}).Should(Succeed())
 			Consistently(func() error {
-				return checkPodAge(namespace, "sidekiq", 90*time.Second)
+				return checkPodAge("mastodon0", namespace, "sidekiq", 90*time.Second)
 			}, "100s", "1s").Should(Succeed())
 
 			_, _, err = kubectl(nil, "delete", "-n", namespace, "mastodonserver", "mastodon0")
