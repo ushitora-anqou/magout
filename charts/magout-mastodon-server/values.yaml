@@ -19,7 +19,7 @@ mastodonServer:
     replicas: 1
     labels: {}
     annotations: {}
-    envFrom: {} # CHANGE HERE
+    envFrom: [] # CHANGE HERE
     resources: {}
     periodicRestart: {}
     #periodicRestart:
@@ -29,13 +29,13 @@ mastodonServer:
     replicas: 1
     labels: {}
     annotations: {}
-    envFrom: {} # CHANGE HERE
+    envFrom: [] # CHANGE HERE
     resources: {}
     periodicRestart: {}
   streaming:
     replicas: 1
     labels: {}
     annotations: {}
-    envFrom: {} # CHANGE HERE
+    envFrom: [] # CHANGE HERE
     resources: {}
     periodicRestart: {}

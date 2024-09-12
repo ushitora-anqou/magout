@@ -41,10 +41,10 @@ spec:
           volumeMounts:
             - name: mnt-public
               mountPath: /mnt/public
-              readyOnly: true
+              readOnly: true
             - name: nginx-conf
               mountPath: /etc/nginx/conf.d
-              readyOnly: true
+              readOnly: true
       volumes:
         - name: mnt-public
           emptyDir: {}
