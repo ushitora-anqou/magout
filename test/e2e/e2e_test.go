@@ -323,14 +323,14 @@ var _ = Describe("controller", Ordered, func() {
 				return checkPodAge("mastodon0", namespace, "web", 30*time.Second)
 			}).Should(Succeed())
 			Consistently(func() error {
-				return checkPodAge("mastodon0", namespace, "web", 90*time.Second)
-			}, "100s", "1s").Should(Succeed())
+				return checkPodAge("mastodon0", namespace, "web", 120*time.Second)
+			}, "130s", "1s").Should(Succeed())
 			Eventually(func() error {
 				return checkPodAge("mastodon0", namespace, "sidekiq", 30*time.Second)
 			}).Should(Succeed())
 			Consistently(func() error {
-				return checkPodAge("mastodon0", namespace, "sidekiq", 90*time.Second)
-			}, "100s", "1s").Should(Succeed())
+				return checkPodAge("mastodon0", namespace, "sidekiq", 120*time.Second)
+			}, "130s", "1s").Should(Succeed())
 
 			_, _, err = kubectl(nil, "delete", "-n", namespace, "mastodonserver", "mastodon0")
 			Expect(err).NotTo(HaveOccurred())
