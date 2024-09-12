@@ -1,14 +1,14 @@
 # fullnameOverride: ""
 
 mastodonVersion:
-  # image: ghcr.io/mastodon/mastodon:latest
-  # streamingImage: ghcr.io/mastodon/mastodon-streaming:latest
+  image: ghcr.io/mastodon/mastodon:v4.2.12
+  streamingImage: ghcr.io/mastodon/mastodon:v4.2.12
 
 gateway:
-  # serverName: "example.com"
+  serverName: "" # CHANGE HERE
   deploy:
-    replicaCount: 1
-    image: nginx:latest
+    replicas: 1
+    image: nginx:1
     resources: {}
   service:
     type: ClusterIP
@@ -16,29 +16,26 @@ gateway:
 
 mastodonServer:
   sidekiq:
-    # replicas: 1
-    # labels: {}
-    # annotations: {}
-    # envFrom: {}
-    # resources: {}
-    # periodicRestart:
-    #   schedule: "0 0 * * *"
-    #   timeZone: UTC
+    replicas: 1
+    labels: {}
+    annotations: {}
+    envFrom: {} # CHANGE HERE
+    resources: {}
+    periodicRestart: {}
+    #periodicRestart:
+    #  schedule: "0 0 * * *"
+    #  timeZone: UTC
   web:
-    # replicas: 1
-    # labels: {}
-    # annotations: {}
-    # envFrom: {}
-    # resources: {}
-    # periodicRestart:
-    #   schedule: "0 0 * * *"
-    #   timeZone: UTC
+    replicas: 1
+    labels: {}
+    annotations: {}
+    envFrom: {} # CHANGE HERE
+    resources: {}
+    periodicRestart: {}
   streaming:
-    # replicas: 1
-    # labels: {}
-    # annotations: {}
-    # envFrom: {}
-    # resources: {}
-    # periodicRestart:
-    #   schedule: "0 0 * * *"
-    #   timeZone: UTC
+    replicas: 1
+    labels: {}
+    annotations: {}
+    envFrom: {} # CHANGE HERE
+    resources: {}
+    periodicRestart: {}

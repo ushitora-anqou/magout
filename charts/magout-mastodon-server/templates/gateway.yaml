@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: {{ include "magout-mastodon-server.fullname" . }}-gateway
 spec:
-  replicas: {{ .Values.gateway.deploy.replicaCount }}
+  replicas: {{ .Values.gateway.deploy.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/name: nginx
