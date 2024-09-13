@@ -6,22 +6,18 @@ Currently, Magout supports Kubernetes 1.29, 1.30, and 1.31.
 
 ## Quick Start
 
-Install a Magout controller via Helm.
+Install Magout's cluster-wide resources such as CRDs via Helm.
 
 ```
 helm install \
-    --create-namespace \
-    --namespace magout \
     --repo https://ushitora-anqou.github.io/magout \
-    magout \
-    magout
+    magout-cluster-wide \
+    magout-cluster-wide
 ```
 
 Install a Mastodon server managed by the Magout controller. First, write a values.yaml:
 
 ```yaml
-fullnameOverride: "mastodon"
-
 mastodonVersion:
   image: ghcr.io/mastodon/mastodon:v4.2.12 # Change here to the latest version.
   streamingImage: ghcr.io/mastodon/mastodon:v4.2.12 # Change here to the latest version.
@@ -56,8 +52,8 @@ helm install \
     --namespace mastodon \
     --repo https://ushitora-anqou.github.io/magout \
     -f values.yaml \
-    magout-mastodon-server \
-    magout-mastodon-server
+    magout \
+    magout
 ```
 
 Magout will then start the necessary migration jobs and deployments for nginx, web, streaming, and sidekiq.
