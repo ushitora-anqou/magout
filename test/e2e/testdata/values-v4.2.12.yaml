@@ -34,3 +34,8 @@ mastodonServer:
       limits:
         cpu: "1"
         memory: 1000Mi
+
+controller:
+  image:
+    repository: magout
+    tag: latest

@@ -2,17 +2,37 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 1
-
-image:
-  repository: ghcr.io/ushitora-anqou/magout
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
-
-imagePullSecrets: []
-nameOverride: ""
 fullnameOverride: ""
+
+mastodonVersion:
+  image: ghcr.io/mastodon/mastodon:v4.2.12
+  streamingImage: ghcr.io/mastodon/mastodon:v4.2.12
+
+mastodonServer:
+  sidekiq:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    envFrom: [] # CHANGE HERE
+    resources: {}
+    periodicRestart: {}
+    #periodicRestart:
+    #  schedule: "0 0 * * *"
+    #  timeZone: UTC
+  web:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    envFrom: [] # CHANGE HERE
+    resources: {}
+    periodicRestart: {}
+  streaming:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    envFrom: [] # CHANGE HERE
+    resources: {}
+    periodicRestart: {}
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -25,64 +45,86 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
-podAnnotations: {}
-podLabels: {}
+controller:
+  replicaCount: 1
 
-podSecurityContext:
-  {}
-  # fsGroup: 2000
+  image:
+    repository: ghcr.io/ushitora-anqou/magout
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
 
-securityContext:
-  {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+  imagePullSecrets: []
+  nameOverride: ""
 
-resources:
-  {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  podAnnotations: {}
+  podLabels: {}
 
-ports:
-  - name: probe
-    containerPort: 8081
-    protocol: TCP
+  podSecurityContext:
+    {}
+    # fsGroup: 2000
 
-livenessProbe:
-  httpGet:
-    path: /healthz
-    port: probe
-readinessProbe:
-  httpGet:
-    path: /readyz
-    port: probe
+  securityContext:
+    {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
 
-# Additional volumes on the output Deployment definition.
-volumes: []
-# - name: foo
-#   secret:
-#     secretName: mysecret
-#     optional: false
+  resources:
+    {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
 
-# Additional volumeMounts on the output Deployment definition.
-volumeMounts: []
-# - name: foo
-#   mountPath: "/etc/foo"
-#   readOnly: true
+  ports:
+    - name: probe
+      containerPort: 8081
+      protocol: TCP
 
-nodeSelector: {}
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: probe
+  readinessProbe:
+    httpGet:
+      path: /readyz
+      port: probe
 
-tolerations: []
+  # Additional volumes on the output Deployment definition.
+  volumes: []
+  # - name: foo
+  #   secret:
+  #     secretName: mysecret
+  #     optional: false
 
-affinity: {}
+  # Additional volumeMounts on the output Deployment definition.
+  volumeMounts: []
+  # - name: foo
+  #   mountPath: "/etc/foo"
+  #   readOnly: true
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+gateway:
+  serverName: "" # CHANGE HERE
+  deploy:
+    replicas: 1
+    image: nginx:1
+    resources: {}
+  service:
+    type: ClusterIP
+    port: 80

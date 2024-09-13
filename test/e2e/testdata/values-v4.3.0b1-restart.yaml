@@ -40,3 +40,8 @@ mastodonServer:
     periodicRestart:
       schedule: "* * * * *"
       timeZone: UTC
+
+controller:
+  image:
+    repository: magout
+    tag: latest

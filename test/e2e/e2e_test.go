@@ -216,8 +216,9 @@ var _ = Describe("controller", Ordered, func() {
 
 			namespace := "e2e"
 
-			_, _, err = helm(nil, "upgrade", "--install", "--namespace", namespace,
-				"magout-mastodon-server", "../../charts/magout-mastodon-server", "--wait",
+			_, _, err = helm(nil, "install",
+				"--namespace", namespace,
+				"magout", "../../charts/magout", "--wait",
 				"-f", "testdata/values-v4.2.12.yaml")
 			Expect(err).NotTo(HaveOccurred())
 
@@ -276,8 +277,9 @@ var _ = Describe("controller", Ordered, func() {
 				return nil
 			}).Should(Succeed())
 
-			_, _, err = helm(nil, "upgrade", "--install", "--namespace", namespace,
-				"magout-mastodon-server", "../../charts/magout-mastodon-server", "--wait",
+			_, _, err = helm(nil, "upgrade",
+				"--namespace", namespace,
+				"magout", "../../charts/magout", "--wait",
 				"-f", "testdata/values-v4.3.0b1.yaml")
 			Expect(err).NotTo(HaveOccurred())
 
@@ -314,8 +316,9 @@ var _ = Describe("controller", Ordered, func() {
 					"http://mastodon0-gateway.e2e.svc", "4.3.0-beta.1")
 			}).Should(Succeed())
 
-			_, _, err = helm(nil, "upgrade", "--install", "--namespace", namespace,
-				"magout-mastodon-server", "../../charts/magout-mastodon-server", "--wait",
+			_, _, err = helm(nil, "upgrade",
+				"--namespace", namespace,
+				"magout", "../../charts/magout", "--wait",
 				"-f", "testdata/values-v4.3.0b1-restart.yaml")
 			Expect(err).NotTo(HaveOccurred())
 

@@ -19,6 +19,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -59,7 +60,9 @@ func mainRestart() error {
 		return err
 	}
 
-	cli, err := client.New(config.GetConfigOrDie(), client.Options{Scheme: scheme})
+	cli, err := client.New(config.GetConfigOrDie(), client.Options{
+		Scheme: scheme,
+	})
 	if err != nil {
 		return fmt.Errorf("couldn't create a new client: %w", err)
 	}
@@ -105,6 +108,7 @@ func mainController() error {
 	var enableHTTP2 bool
 	var tlsOpts []func(*tls.Config)
 	var restartServiceAccountName string
+	var namespace string
 	flag.StringVar(&restartServiceAccountName, "restart-service-account-name", "",
 		"ServiceAccount name that should be used for periodic restart CronJobs")
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
@@ -117,6 +121,8 @@ func mainController() error {
 		"If set, the metrics endpoint is served securely via HTTPS. Use --metrics-secure=false to use HTTP instead.")
 	flag.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
+	flag.StringVar(&namespace, "namespace", "",
+		"the magout operator should work for the MantleServer resources in the namespace.")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -127,6 +133,9 @@ func mainController() error {
 
 	if restartServiceAccountName == "" {
 		return errors.New("specify restart-service-account-name")
+	}
+	if namespace == "" {
+		return errors.New("specify namespace")
 	}
 
 	// if the enable-http2 flag is false (the default), http/2 should be disabled
@@ -190,6 +199,12 @@ func mainController() error {
 		// if you are doing or is intended to do any operation such as perform cleanups
 		// after the manager stops then its usage might be unsafe.
 		// LeaderElectionReleaseOnCancel: true,
+
+		Cache: cache.Options{
+			DefaultNamespaces: map[string]cache.Config{
+				namespace: {},
+			},
+		},
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")

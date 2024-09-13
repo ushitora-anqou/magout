@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "magout-mastodon-server.fullname" . }}-gateway
+  name: {{ include "magout.fullname" . }}-gateway
 spec:
   replicas: {{ .Values.gateway.deploy.replicas }}
   selector:
@@ -9,14 +9,14 @@ spec:
       app.kubernetes.io/name: nginx
       app.kubernetes.io/component: gateway
       app.kubernetes.io/part-of: mastodon
-      magout.anqou.net/mastodon-server: {{ include "magout-mastodon-server.fullname" . }}
+      magout.anqou.net/mastodon-server: {{ include "magout.fullname" . }}
   template:
     metadata:
       labels:
         app.kubernetes.io/name: nginx
         app.kubernetes.io/component: gateway
         app.kubernetes.io/part-of: mastodon
-        magout.anqou.net/mastodon-server: {{ include "magout-mastodon-server.fullname" . }}
+        magout.anqou.net/mastodon-server: {{ include "magout.fullname" . }}
     spec:
       initContainers:
         - name: copy-assets
@@ -50,7 +50,7 @@ spec:
           emptyDir: {}
         - name: nginx-conf
           configMap:
-            name: {{ include "magout-mastodon-server.fullname" . }}-gateway-nginx-conf
+            name: {{ include "magout.fullname" . }}-gateway-nginx-conf
             items:
               - key: nginx.conf
                 path: mastodon.conf
@@ -58,7 +58,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "magout-mastodon-server.fullname" . }}-gateway
+  name: {{ include "magout.fullname" . }}-gateway
   namespace: {{ .Release.Namespace }}
 spec:
   type: {{ .Values.gateway.service.type }}
@@ -75,7 +75,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "magout-mastodon-server.fullname" . }}-gateway-nginx-conf
+  name: {{ include "magout.fullname" . }}-gateway-nginx-conf
   namespace:  {{ .Release.Namespace }}
 data:
 # The following nginx.conf is a fork of Mastodon's dist/nginx.conf
@@ -95,7 +95,7 @@ data:
     }
     
     upstream backend {
-      server {{ include "magout-mastodon-server.fullname" . }}-web.{{ .Release.Namespace }}.svc.cluster.local:3000 fail_timeout=0;
+      server {{ include "magout.fullname" . }}-web.{{ .Release.Namespace }}.svc.cluster.local:3000 fail_timeout=0;
     }
     
     upstream streaming {
@@ -103,7 +103,7 @@ data:
       # to ensure load is distributed evenly.
       least_conn;
     
-      server {{ include "magout-mastodon-server.fullname" . }}-streaming.{{ .Release.Namespace }}.svc.cluster.local:4000 fail_timeout=0;
+      server {{ include "magout.fullname" . }}-streaming.{{ .Release.Namespace }}.svc.cluster.local:4000 fail_timeout=0;
       # Uncomment these lines for load-balancing multiple instances of streaming for scaling,
       # this assumes your running the streaming server on ports 4000, 4001, and 4002:
       # server 127.0.0.1:4001 fail_timeout=0;

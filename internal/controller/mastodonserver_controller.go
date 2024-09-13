@@ -25,13 +25,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers/finalizers,verbs=update
-// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=batch,resources=cronjobs,verbs=get;list;watch;create;update;patch;delete
+//nolint:lll
+// +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers,namespace=default,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers/status,namespace=default,verbs=get;update;patch
+// +kubebuilder:rbac:groups=magout.anqou.net,resources=mastodonservers/finalizers,namespace=default,verbs=update
+// +kubebuilder:rbac:groups=apps,resources=deployments,namespace=default,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=batch,resources=jobs,namespace=default,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=pods,namespace=default,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=batch,resources=cronjobs,namespace=default,verbs=get;list;watch;create;update;patch;delete
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=deployStatusType
 //go:generate go run golang.org/x/tools/cmd/stringer -type=jobStatusType

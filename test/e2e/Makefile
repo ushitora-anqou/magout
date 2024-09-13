@@ -5,7 +5,7 @@ test: kind helm kubectl
 	$(MAKE) -C ../.. docker-build IMG=$(IMG)
 	$(KIND) create cluster --name $(KIND_TEST_CLUSTER) --image kindest/node:v$(KUBERNETES_VERSION)
 	$(KIND) load docker-image $(IMG) --name $(KIND_TEST_CLUSTER)
-	$(HELM) upgrade --create-namespace --install --namespace=magout magout ../../charts/magout --wait -f testdata/values-magout.yaml
+	$(HELM) upgrade --install magout-cluster-wide ../../charts/magout-cluster-wide --wait
 	$(KUBECTL) create namespace e2e
 	$(KUBECTL) apply -f testdata/secret-env.yaml
 	$(KUBECTL) apply -f testdata/toolbox.yaml
