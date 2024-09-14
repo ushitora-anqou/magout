@@ -3,6 +3,16 @@ entries:
   magout:
   - apiVersion: v2
     appVersion: 0.1.2
+    created: "2024-09-14T12:59:56.896818836Z"
+    description: A Helm chart for Kubernetes
+    digest: 48808535bd54b586b53ec65823072364375d527203952adbd6f8bc9f09f883ef
+    name: magout
+    type: application
+    urls:
+    - https://github.com/ushitora-anqou/magout/releases/download/magout-chart-v0.1.3/magout-0.1.3.tgz
+    version: 0.1.3
+  - apiVersion: v2
+    appVersion: 0.1.2
     created: "2024-09-13T15:27:50.701854904Z"
     description: A Helm chart for Kubernetes
     digest: 7ad321579139ea639c8bda00a8de607faaaaf4f6bdf87f12c5263328af4e906b
@@ -73,4 +83,4 @@ entries:
     urls:
     - https://github.com/ushitora-anqou/magout/releases/download/magout-mastodon-server-chart-v0.1.0/magout-mastodon-server-0.1.0.tgz
     version: 0.1.0
-generated: "2024-09-13T15:30:23.353420234Z"
+generated: "2024-09-14T12:59:56.896865583Z"
