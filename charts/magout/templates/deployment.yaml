@@ -5,47 +5,47 @@ metadata:
   labels:
     {{- include "magout.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.controller.replicaCount }}
+  replicas: {{ .Values.operator.replicaCount }}
   selector:
     matchLabels:
       {{- include "magout.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.controller.podAnnotations }}
+      {{- with .Values.operator.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
         {{- include "magout.labels" . | nindent 8 }}
-        {{- with .Values.controller.podLabels }}
+        {{- with .Values.operator.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- with .Values.controller.imagePullSecrets }}
+      {{- with .Values.operator.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "magout.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.controller.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.operator.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
-            {{- toYaml .Values.controller.securityContext | nindent 12 }}
-          image: "{{ .Values.controller.image.repository }}:{{ .Values.controller.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
+            {{- toYaml .Values.operator.securityContext | nindent 12 }}
+          image: "{{ .Values.operator.image.repository }}:{{ .Values.operator.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
           args:
             - -restart-service-account-name={{ include "magout.serviceAccountName" . }}
             - -namespace={{ .Release.Namespace }}
           ports:
-            {{- toYaml .Values.controller.ports | nindent 12 }}
+            {{- toYaml .Values.operator.ports | nindent 12 }}
           livenessProbe:
-            {{- toYaml .Values.controller.livenessProbe | nindent 12 }}
+            {{- toYaml .Values.operator.livenessProbe | nindent 12 }}
           readinessProbe:
-            {{- toYaml .Values.controller.readinessProbe | nindent 12 }}
+            {{- toYaml .Values.operator.readinessProbe | nindent 12 }}
           resources:
-            {{- toYaml .Values.controller.resources | nindent 12 }}
-          {{- with .Values.controller.volumeMounts }}
+            {{- toYaml .Values.operator.resources | nindent 12 }}
+          {{- with .Values.operator.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -58,19 +58,19 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-      {{- with .Values.controller.volumes }}
+      {{- with .Values.operator.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.controller.nodeSelector }}
+      {{- with .Values.operator.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.controller.affinity }}
+      {{- with .Values.operator.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.controller.tolerations }}
+      {{- with .Values.operator.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

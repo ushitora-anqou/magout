@@ -47,7 +47,7 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
-controller:
+operator:
   replicaCount: 1
 
   image:
