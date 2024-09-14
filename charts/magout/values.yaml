@@ -4,6 +4,8 @@
 
 fullnameOverride: ""
 
+serverName: "" # CHANGE HERE
+
 mastodonVersion:
   image: ghcr.io/mastodon/mastodon:v4.2.12
   streamingImage: ghcr.io/mastodon/mastodon:v4.2.12
@@ -120,7 +122,6 @@ controller:
   affinity: {}
 
 gateway:
-  serverName: "" # CHANGE HERE
   deploy:
     replicas: 1
     image: nginx:1

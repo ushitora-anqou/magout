@@ -115,7 +115,7 @@ data:
     server {
       listen 80;
       listen [::]:80;
-      server_name {{ .Values.gateway.serverName }};
+      server_name {{ .Values.serverName }};
     
       keepalive_timeout    70;
       sendfile             on;
