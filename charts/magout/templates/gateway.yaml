@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "magout.fullname" . }}-gateway
+  annotations:
+    {{- toYaml .Values.gateway.deploy.annotations | nindent 4 }}
 spec:
   replicas: {{ .Values.gateway.deploy.replicas }}
   selector:

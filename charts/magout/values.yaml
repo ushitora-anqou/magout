@@ -126,6 +126,7 @@ gateway:
     replicas: 1
     image: nginx:1
     resources: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 80
