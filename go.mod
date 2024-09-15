@@ -7,7 +7,7 @@ require (
 	github.com/onsi/gomega v1.33.1
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d
 	k8s.io/api v0.31.0
-	k8s.io/apimachinery v0.31.0
+	k8s.io/apimachinery v0.31.1
 	k8s.io/client-go v0.31.0
 	sigs.k8s.io/controller-runtime v0.19.0
 )
