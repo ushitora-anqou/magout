@@ -73,6 +73,7 @@ spec:
     app.kubernetes.io/name: nginx
     app.kubernetes.io/component: gateway
     app.kubernetes.io/part-of: mastodon
+    magout.anqou.net/mastodon-server: {{ include "magout.fullname" . }}
 ---
 apiVersion: v1
 kind: ConfigMap
