@@ -122,6 +122,7 @@ operator:
   affinity: {}
 
 gateway:
+  enabled: true
   deploy:
     replicas: 1
     image: nginx:1
