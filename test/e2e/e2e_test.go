@@ -272,6 +272,13 @@ var _ = Describe("controller", Ordered, func() {
 				if code != 200 {
 					return errors.New("health is not ok")
 				}
+				code, err = httpGet("http://mastodon0-gateway.e2e.svc/api/v1/streaming")
+				if err != nil {
+					return err
+				}
+				if code != 400 {
+					return errors.New("streaming is not ok")
+				}
 
 				if err := checkMastodonVersion("mastodon.test",
 					"http://mastodon0-gateway.e2e.svc", "4.2.12"); err != nil {
