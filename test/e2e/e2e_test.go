@@ -78,10 +78,13 @@ func waitDeployAvailable(name, namespace string) error {
 	return waitCondition("deployment", name, namespace, "Available")
 }
 
-func httpGet(uri string) error {
-	_, _, err := kubectl(nil, "exec", "deploy/toolbox", "--",
-		"curl", "--silent", uri)
-	return err
+func httpGet(uri string) (int, error) {
+	stdout, _, err := kubectl(nil, "exec", "deploy/toolbox", "--",
+		"curl", "-o", "/dev/null", "-w", "%{http_code}\\n", "--silent", uri)
+	if err != nil {
+		return 0, err
+	}
+	return strconv.Atoi(strings.TrimSpace(string(stdout)))
 }
 
 func checkMastodonVersion(host, endpoint, expected string) error {
@@ -262,8 +265,12 @@ var _ = Describe("controller", Ordered, func() {
 					return err
 				}
 
-				if err := httpGet("http://mastodon0-gateway.e2e.svc/health"); err != nil {
+				code, err := httpGet("http://mastodon0-gateway.e2e.svc/health")
+				if err != nil {
 					return err
+				}
+				if code != 200 {
+					return errors.New("health is not ok")
 				}
 
 				if err := checkMastodonVersion("mastodon.test",
@@ -301,8 +308,12 @@ var _ = Describe("controller", Ordered, func() {
 					return err
 				}
 
-				if err := httpGet("http://mastodon0-gateway.e2e.svc/health"); err != nil {
+				code, err := httpGet("http://mastodon0-gateway.e2e.svc/health")
+				if err != nil {
 					return err
+				}
+				if code != 200 {
+					return errors.New("health is not ok")
 				}
 
 				if err := checkSchemaMigrationsCount(namespace, 468); err != nil {
