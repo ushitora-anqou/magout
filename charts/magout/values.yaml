@@ -135,5 +135,6 @@ gateway:
 ingress:
   enabled: false
   annotations: {}
+  ingressClassName: ""
   tls:
     enabled: false
