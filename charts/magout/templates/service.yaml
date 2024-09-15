@@ -23,9 +23,9 @@ spec:
   type: ClusterIP
   ports:
     - port: 4000
-      targetPort: http
+      targetPort: streaming
       protocol: TCP
-      name: http
+      name: streaming
   selector:
     app.kubernetes.io/name: node
     app.kubernetes.io/component: streaming
