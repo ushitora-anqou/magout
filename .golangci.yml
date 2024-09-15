@@ -1,3 +1,8 @@
+run:
+  concurrency: 0
+  timeout: 5m
+  allow-parallel-runners: true
+
 linters-settings:
   revive:
     enable-all-rules: true
