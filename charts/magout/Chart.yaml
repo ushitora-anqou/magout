@@ -1,6 +1,6 @@
 apiVersion: v2
 name: magout
-description: A Helm chart for Kubernetes
+description: A Helm chart for Magout, a Kubernetes operator for Mastodon. This chart includes a Deployment resource for the Magout operator, a MastodonServer resource to deploy a Mastodon server, and other stuff necessary for the deploy. Users must use this chart together with magout-cluster-wide chart.
 
 # A chart can be either an 'application' or a 'library' chart.
 #
