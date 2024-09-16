@@ -3,6 +3,19 @@ entries:
   magout:
   - apiVersion: v2
     appVersion: 0.1.2
+    created: "2024-09-16T09:31:32.072070621Z"
+    description: A Helm chart for Magout, a Kubernetes operator for Mastodon. This
+      chart includes a Deployment resource for the Magout operator, a MastodonServer
+      resource to deploy a Mastodon server, and other stuff necessary for the deploy.
+      Users must use this chart together with magout-cluster-wide chart.
+    digest: 6d6c8b53483abd3992545f7236bab1776ee26a0615b0c8ee828cbdcff19ce038
+    name: magout
+    type: application
+    urls:
+    - https://github.com/ushitora-anqou/magout/releases/download/magout-chart-v0.1.8/magout-0.1.8.tgz
+    version: 0.1.8
+  - apiVersion: v2
+    appVersion: 0.1.2
     created: "2024-09-16T09:22:32.967749326Z"
     description: A Helm chart for Kubernetes
     digest: a5bf144b943b5c07c41fa6d7acf21f4581970c80809bf03d101ed33028fb2320
@@ -84,6 +97,18 @@ entries:
   magout-cluster-wide:
   - apiVersion: v2
     appVersion: 0.1.2
+    created: "2024-09-16T09:31:32.202675127Z"
+    description: A Helm chart for Magout, a Kubernetes operator for Mastodon. This
+      chart includes cluster-wide resources of Magout, such as CustomResourceDefinition.
+      Users must use this chart together with magout chart.
+    digest: 14d46efc7cd538a78bd46893a2dac69607a69ab819fd4fabf0e8928580f87df1
+    name: magout-cluster-wide
+    type: application
+    urls:
+    - https://github.com/ushitora-anqou/magout/releases/download/magout-cluster-wide-chart-v0.1.3/magout-cluster-wide-0.1.3.tgz
+    version: 0.1.3
+  - apiVersion: v2
+    appVersion: 0.1.2
     created: "2024-09-13T15:30:23.353400517Z"
     description: A Helm chart for Kubernetes
     digest: e73be32b41a367e68028eace026355236c6b447cc7b3af2b5a934bb38880a53d
@@ -123,4 +148,4 @@ entries:
     urls:
     - https://github.com/ushitora-anqou/magout/releases/download/magout-mastodon-server-chart-v0.1.0/magout-mastodon-server-0.1.0.tgz
     version: 0.1.0
-generated: "2024-09-16T09:22:32.96778319Z"
+generated: "2024-09-16T09:31:32.202717717Z"
