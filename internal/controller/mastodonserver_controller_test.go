@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-func expectComponentDeploy(ctx context.Context, name, namespace, mastodonServerName, image, imageBase64 string) {
+func expectComponentDeploy(ctx context.Context, name, namespace, mastodonServerName, image, imageEncoded string) {
 	var deploy appsv1.Deployment
 	err := k8sClient.Get(
 		ctx,
@@ -25,16 +25,16 @@ func expectComponentDeploy(ctx context.Context, name, namespace, mastodonServerN
 	Expect(err).NotTo(HaveOccurred())
 	Expect(deploy.Spec.Template.Spec.Containers[0].Image).To(Equal(image))
 	Expect(deploy.Spec.Template.GetLabels()[labelMagoutAnqouNetMastodonServer]).To(Equal(mastodonServerName))
-	Expect(deploy.Spec.Template.GetLabels()[labelMagoutAnqouNetDeployImage]).To(Equal(imageBase64))
+	Expect(deploy.Spec.Template.GetLabels()[labelMagoutAnqouNetDeployImage]).To(Equal(imageEncoded))
 }
 
-func createComponentPod(ctx context.Context, name, namespace, mastodonServerName, image, imageBase64 string) {
+func createComponentPod(ctx context.Context, name, namespace, mastodonServerName, image, imageEncoded string) {
 	var pod corev1.Pod
 	pod.SetName(name)
 	pod.SetNamespace(namespace)
 	pod.SetLabels(map[string]string{
 		labelMagoutAnqouNetMastodonServer: mastodonServerName,
-		labelMagoutAnqouNetDeployImage:    imageBase64,
+		labelMagoutAnqouNetDeployImage:    imageEncoded,
 	})
 	pod.Spec.Containers = []corev1.Container{
 		{Name: "container", Image: image},
@@ -63,17 +63,17 @@ var _ = Describe("MastodonServer Controller", func() {
 			namespace := "default"
 			namespacedName := types.NamespacedName{Name: mastodonServerName, Namespace: namespace}
 			webImage := "web-image"
-			webImageBase64 := "d2ViLWltYWdl"
+			webImageEncoded := "8dc8fcf310ceb1362c9ffdd524aea3e4b615040a036139368edc1629"
 			webImage2 := "web-image2"
-			webImage2Base64 := "d2ViLWltYWdlMg"
+			webImage2Encoded := "79ee44f8e54024bdff8c2468440e115ffca4e68bbb2da8d07d3896c1"
 			sidekiqImage := "sidekiq-image"
-			sidekiqImageBase64 := "c2lkZWtpcS1pbWFnZQ"
+			sidekiqImageEncoded := "899663b44f9e75624cf5c32cbf2c911afe6a1595a6e15a7b0f3ccfd8"
 			sidekiqImage2 := "sidekiq-image2"
-			sidekiqImage2Base64 := "c2lkZWtpcS1pbWFnZTI"
+			sidekiqImage2Encoded := "78fffcc42f8ca44957c3ba9dd8469e5bdaf24bab7a724db126acc996"
 			streamingImage := "streaming-image"
-			streamingImageBase64 := "c3RyZWFtaW5nLWltYWdl"
+			streamingImageEncoded := "f1f6413ffb47c0eecdd38da773841a6932c50cfd75aa07dcee8afc25"
 			streamingImage2 := "streaming-image2"
-			streamingImage2Base64 := "c3RyZWFtaW5nLWltYWdlMg"
+			streamingImage2Encoded := "85911d46f824a2df54e1c5e8774eaeb1ba6adf5b8e554fd9d2587109"
 
 			controllerReconciler := controller.NewMastodonServerReconciler(
 				k8sClient,
@@ -135,19 +135,19 @@ var _ = Describe("MastodonServer Controller", func() {
 
 			By("Checking deployments are created")
 			expectComponentDeploy(ctx, mastodonServerName+"-web", namespace,
-				mastodonServerName, webImage, webImageBase64)
+				mastodonServerName, webImage, webImageEncoded)
 			expectComponentDeploy(ctx, mastodonServerName+"-sidekiq", namespace,
-				mastodonServerName, sidekiqImage, sidekiqImageBase64)
+				mastodonServerName, sidekiqImage, sidekiqImageEncoded)
 			expectComponentDeploy(ctx, mastodonServerName+"-streaming", namespace,
-				mastodonServerName, streamingImage, streamingImageBase64)
+				mastodonServerName, streamingImage, streamingImageEncoded)
 
 			By("Creating pods to emulate the situation where all the deployments are ready")
 			createComponentPod(ctx, mastodonServerName+"-web-ffffff", namespace,
-				mastodonServerName, webImage, webImageBase64)
+				mastodonServerName, webImage, webImageEncoded)
 			createComponentPod(ctx, mastodonServerName+"-sidekiq-ffffff", namespace,
-				mastodonServerName, sidekiqImage, sidekiqImageBase64)
+				mastodonServerName, sidekiqImage, sidekiqImageEncoded)
 			createComponentPod(ctx, mastodonServerName+"-streaming-ffffff", namespace,
-				mastodonServerName, streamingImage, streamingImageBase64)
+				mastodonServerName, streamingImage, streamingImageEncoded)
 
 			By("Reconciling the resource")
 			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{
@@ -228,22 +228,22 @@ var _ = Describe("MastodonServer Controller", func() {
 
 			By("Checking deployments are created")
 			expectComponentDeploy(ctx, mastodonServerName+"-web", namespace,
-				mastodonServerName, webImage2, webImage2Base64)
+				mastodonServerName, webImage2, webImage2Encoded)
 			expectComponentDeploy(ctx, mastodonServerName+"-sidekiq", namespace,
-				mastodonServerName, sidekiqImage2, sidekiqImage2Base64)
+				mastodonServerName, sidekiqImage2, sidekiqImage2Encoded)
 			expectComponentDeploy(ctx, mastodonServerName+"-streaming", namespace,
-				mastodonServerName, streamingImage2, streamingImage2Base64)
+				mastodonServerName, streamingImage2, streamingImage2Encoded)
 
 			By("Recreating the pods for the deployments")
 			deleteComponentPod(ctx, mastodonServerName+"-web-ffffff", namespace)
 			deleteComponentPod(ctx, mastodonServerName+"-sidekiq-ffffff", namespace)
 			deleteComponentPod(ctx, mastodonServerName+"-streaming-ffffff", namespace)
 			createComponentPod(ctx, mastodonServerName+"-web-ffffff", namespace,
-				mastodonServerName, webImage2, webImage2Base64)
+				mastodonServerName, webImage2, webImage2Encoded)
 			createComponentPod(ctx, mastodonServerName+"-sidekiq-ffffff", namespace,
-				mastodonServerName, sidekiqImage2, sidekiqImage2Base64)
+				mastodonServerName, sidekiqImage2, sidekiqImage2Encoded)
 			createComponentPod(ctx, mastodonServerName+"-streaming-ffffff", namespace,
-				mastodonServerName, streamingImage2, streamingImage2Base64)
+				mastodonServerName, streamingImage2, streamingImage2Encoded)
 
 			By("Reconciling the resource")
 			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{

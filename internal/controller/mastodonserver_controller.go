@@ -2,7 +2,7 @@ package controller
 
 import (
 	"context"
-	"encoding/base64"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"time"
@@ -94,7 +94,7 @@ func buildPeriodicRestartCronJobName(component componentType, mastodonServerName
 }
 
 func encodeDeploymentImage(image string) string {
-	return base64.RawURLEncoding.EncodeToString([]byte(image))
+	return fmt.Sprintf("%x", sha256.Sum224([]byte(image)))
 }
 
 func getDeploymentImage(
