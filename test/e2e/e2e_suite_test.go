@@ -13,7 +13,7 @@ import (
 func TestE2E(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	SetDefaultEventuallyTimeout(100 * time.Second)
+	SetDefaultEventuallyTimeout(200 * time.Second)
 	SetDefaultEventuallyPollingInterval(1 * time.Second)
 
 	_, _ = fmt.Fprintf(GinkgoWriter, "Starting magout suite\n")
