@@ -138,3 +138,27 @@ ingress:
   ingressClassName: ""
   tls:
     enabled: false
+
+periodicMaintenance:
+  enabled: true
+  schedule: "0 0 * * *"
+  timeZone: "UTC"
+  successfulJobsHistoryLimit: 1
+  envFrom: {}
+  resources: {}
+  removeStatuses: # tootctl statuses remove
+    enabled: false
+  pruneAccounts: # tootctl accounts prune
+    enabled: true
+  cullAccounts: # tootctl accounts cull
+    enabled: true
+  removeMedia: # tootctl media remove
+    enabled: true
+  pruneProfileMedia: # tootctl media remove --prune-profiles
+    enabled: false
+  removeOrphanMedia: # tootctl media remove-orphans
+    enabled: false
+  refreshAccounts: # tootctl accounts refresh --all
+    enabled: false
+  removePreviewCards: # tootctl preview_cards remove
+    enabled: false

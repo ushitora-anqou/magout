@@ -1,0 +1,56 @@
+{{- if .Values.periodicMaintenance.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "magout.fullname" . }}-cleanup
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - command:
+            - bash
+            - -xeu
+            - -c
+            - |
+              {{- if .Values.periodicMaintenance.removeStatuses.enabled }}
+              bin/tootctl statuses remove
+              {{- end }}
+              {{- if .Values.periodicMaintenance.pruneAccounts.enabled }}
+              bin/tootctl accounts prune
+              {{- end }}
+              {{- if .Values.periodicMaintenance.cullAccounts.enabled }}
+              bin/tootctl accounts cull
+              {{- end }}
+              {{- if .Values.periodicMaintenance.removeMedia.enabled }}
+              bin/tootctl media remove
+              {{- end }}
+              {{- if .Values.periodicMaintenance.pruneProfileMedia.enabled }}
+              bin/tootctl media remove --prune-profiles
+              {{- end }}
+              {{- if .Values.periodicMaintenance.removePreviewCards.enabled }}
+              bin/tootctl preview_cards remove
+              {{- end }}
+              {{- if .Values.periodicMaintenance.removeOrphanMedia.enabled }}
+              bin/tootctl media remove-orphans
+              {{- end }}
+              {{- if .Values.periodicMaintenance.refreshAccounts.enabled }}
+              bin/tootctl accounts refresh --all
+              {{- end }}
+            {{- with .Values.periodicMaintenance.envFrom }}
+            envFrom:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            image: {{ .Values.mastodonVersion.image }}
+            name: tootctl
+            {{- with .Values.periodicMaintenance.resources }}
+            resources:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+          restartPolicy: Never
+  schedule: {{ .Values.periodicMaintenance.schedule }}
+  timeZone: {{ .Values.periodicMaintenance.timeZone }}
+  successfulJobsHistoryLimit: {{ .Values.periodicMaintenance.successfulJobsHistoryLimit }}
+{{- end }}
