@@ -144,7 +144,7 @@ periodicMaintenance:
   schedule: "0 0 * * *"
   timeZone: "UTC"
   successfulJobsHistoryLimit: 1
-  envFrom: {}
+  envFrom: []
   resources: {}
   removeStatuses: # tootctl statuses remove
     enabled: false
