@@ -140,7 +140,7 @@ ingress:
     enabled: false
 
 periodicMaintenance:
-  enabled: true
+  enabled: false
   schedule: "0 0 * * *"
   timeZone: "UTC"
   successfulJobsHistoryLimit: 1
