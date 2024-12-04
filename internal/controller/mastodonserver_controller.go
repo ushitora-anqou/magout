@@ -478,6 +478,7 @@ func (r *MastodonServerReconciler) createOrUpdateSidekiqDeployment(
 		nil,
 		nil,
 		nil,
+		spec.NodeSelector,
 	)
 }
 
@@ -513,6 +514,7 @@ func (r *MastodonServerReconciler) createOrUpdateStreamingDeployment(
 		},
 		nil,
 		nil,
+		spec.NodeSelector,
 	)
 }
 
@@ -563,6 +565,7 @@ func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 			FailureThreshold: 30,
 			PeriodSeconds:    5,
 		},
+		spec.NodeSelector,
 	)
 }
 
@@ -583,6 +586,7 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 	livenessProbe *corev1.Probe,
 	readinessProbe *corev1.Probe,
 	startupProbe *corev1.Probe,
+	nodeSelector map[string]string,
 ) error {
 	logger := log.FromContext(ctx)
 
@@ -645,6 +649,8 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 				StartupProbe:   startupProbe,
 			},
 		}
+
+		deploy.Spec.Template.Spec.NodeSelector = nodeSelector
 
 		return ctrl.SetControllerReference(server, &deploy, r.Scheme)
 	})
