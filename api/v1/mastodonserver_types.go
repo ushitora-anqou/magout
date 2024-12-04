@@ -23,6 +23,8 @@ type MastodonServerSidekiqSpec struct {
 	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
 	NodeSelector    map[string]string           `json:"nodeSelector,omitempty"`
 
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
+
 	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`
 }
@@ -37,6 +39,8 @@ type MastodonServerStreamingSpec struct {
 	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
 	NodeSelector    map[string]string           `json:"nodeSelector,omitempty"`
 
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
+
 	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`
 }
@@ -50,6 +54,8 @@ type MastodonServerWebSpec struct {
 	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
 	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
 	NodeSelector    map[string]string           `json:"nodeSelector,omitempty"`
+
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 
 	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`

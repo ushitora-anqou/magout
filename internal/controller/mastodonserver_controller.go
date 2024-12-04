@@ -479,6 +479,7 @@ func (r *MastodonServerReconciler) createOrUpdateSidekiqDeployment(
 		nil,
 		nil,
 		spec.NodeSelector,
+		spec.TopologySpreadConstraints,
 	)
 }
 
@@ -515,6 +516,7 @@ func (r *MastodonServerReconciler) createOrUpdateStreamingDeployment(
 		nil,
 		nil,
 		spec.NodeSelector,
+		spec.TopologySpreadConstraints,
 	)
 }
 
@@ -566,6 +568,7 @@ func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 			PeriodSeconds:    5,
 		},
 		spec.NodeSelector,
+		spec.TopologySpreadConstraints,
 	)
 }
 
@@ -587,6 +590,7 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 	readinessProbe *corev1.Probe,
 	startupProbe *corev1.Probe,
 	nodeSelector map[string]string,
+	topologySpreadConstraints []corev1.TopologySpreadConstraint,
 ) error {
 	logger := log.FromContext(ctx)
 
@@ -651,6 +655,7 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 		}
 
 		deploy.Spec.Template.Spec.NodeSelector = nodeSelector
+		deploy.Spec.Template.Spec.TopologySpreadConstraints = topologySpreadConstraints
 
 		return ctrl.SetControllerReference(server, &deploy, r.Scheme)
 	})
