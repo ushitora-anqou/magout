@@ -128,6 +128,13 @@ func (in *MastodonServerSidekiqSpec) DeepCopyInto(out *MastodonServerSidekiqSpec
 		}
 	}
 	in.Affinity.DeepCopyInto(&out.Affinity)
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]corev1.Toleration, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	if in.TopologySpreadConstraints != nil {
 		in, out := &in.TopologySpreadConstraints, &out.TopologySpreadConstraints
 		*out = make([]corev1.TopologySpreadConstraint, len(*in))
@@ -230,6 +237,13 @@ func (in *MastodonServerStreamingSpec) DeepCopyInto(out *MastodonServerStreaming
 		}
 	}
 	in.Affinity.DeepCopyInto(&out.Affinity)
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]corev1.Toleration, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	if in.TopologySpreadConstraints != nil {
 		in, out := &in.TopologySpreadConstraints, &out.TopologySpreadConstraints
 		*out = make([]corev1.TopologySpreadConstraint, len(*in))
@@ -294,6 +308,13 @@ func (in *MastodonServerWebSpec) DeepCopyInto(out *MastodonServerWebSpec) {
 		}
 	}
 	in.Affinity.DeepCopyInto(&out.Affinity)
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]corev1.Toleration, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	if in.TopologySpreadConstraints != nil {
 		in, out := &in.TopologySpreadConstraints, &out.TopologySpreadConstraints
 		*out = make([]corev1.TopologySpreadConstraint, len(*in))
