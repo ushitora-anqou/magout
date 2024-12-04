@@ -22,6 +22,7 @@ type MastodonServerSidekiqSpec struct {
 	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
 	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
 	NodeSelector    map[string]string           `json:"nodeSelector,omitempty"`
+	Affinity        corev1.Affinity             `json:"affinity,omitempty"`
 
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 
@@ -38,6 +39,7 @@ type MastodonServerStreamingSpec struct {
 	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
 	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
 	NodeSelector    map[string]string           `json:"nodeSelector,omitempty"`
+	Affinity        corev1.Affinity             `json:"affinity,omitempty"`
 
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 
@@ -54,6 +56,7 @@ type MastodonServerWebSpec struct {
 	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
 	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
 	NodeSelector    map[string]string           `json:"nodeSelector,omitempty"`
+	Affinity        corev1.Affinity             `json:"affinity,omitempty"`
 
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 
