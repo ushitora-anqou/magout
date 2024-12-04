@@ -21,6 +21,7 @@ type MastodonServerSidekiqSpec struct {
 	PodAnnotations  map[string]string           `json:"podAnnotations,omitempty"`
 	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
 	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
+	NodeSelector    map[string]string           `json:"nodeSelector,omitempty"`
 
 	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`
@@ -34,6 +35,7 @@ type MastodonServerStreamingSpec struct {
 	PodAnnotations  map[string]string           `json:"podAnnotations,omitempty"`
 	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
 	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
+	NodeSelector    map[string]string           `json:"nodeSelector,omitempty"`
 
 	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`
@@ -47,6 +49,7 @@ type MastodonServerWebSpec struct {
 	PodAnnotations  map[string]string           `json:"podAnnotations,omitempty"`
 	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
 	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
+	NodeSelector    map[string]string           `json:"nodeSelector,omitempty"`
 
 	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`

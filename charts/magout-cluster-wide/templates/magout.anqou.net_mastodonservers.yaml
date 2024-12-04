@@ -96,6 +96,10 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  nodeSelector:
+                    additionalProperties:
+                      type: string
+                    type: object
                   periodicRestart:
                     properties:
                       schedule:
@@ -233,6 +237,10 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  nodeSelector:
+                    additionalProperties:
+                      type: string
+                    type: object
                   periodicRestart:
                     properties:
                       schedule:
@@ -367,6 +375,10 @@ spec:
                   image:
                     type: string
                   labels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  nodeSelector:
                     additionalProperties:
                       type: string
                     type: object
