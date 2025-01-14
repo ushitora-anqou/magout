@@ -47,8 +47,7 @@ linters:
     - gci
     - funlen
     - depguard
-    - execinquery # deprecated
-    - gomnd # deprecated
+    - exportloopref # deprecated
 
 issues:
   exclude-rules:
