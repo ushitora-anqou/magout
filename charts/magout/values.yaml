@@ -18,9 +18,9 @@ mastodonServer:
     envFrom: [] # CHANGE HERE
     resources: {}
     periodicRestart: {}
-    #periodicRestart:
-    #  schedule: "0 0 * * *"
-    #  timeZone: UTC
+    # periodicRestart:
+    #   schedule: "0 0 * * *"
+    #   timeZone: UTC
   web:
     replicas: 1
     labels: {}
