@@ -265,14 +265,14 @@ var _ = Describe("controller", Ordered, func() {
 					return err
 				}
 
-				code, err := httpGet("http://mastodon0-gateway.e2e.svc/health")
+				code, err := httpGet("http://mastodon0-gateway.e2e.svc:8080/health")
 				if err != nil {
 					return err
 				}
 				if code != 200 {
 					return errors.New("health is not ok")
 				}
-				code, err = httpGet("http://mastodon0-gateway.e2e.svc/api/v1/streaming")
+				code, err = httpGet("http://mastodon0-gateway.e2e.svc:8080/api/v1/streaming")
 				if err != nil {
 					return err
 				}
@@ -281,7 +281,7 @@ var _ = Describe("controller", Ordered, func() {
 				}
 
 				if err := checkMastodonVersion("mastodon.test",
-					"http://mastodon0-gateway.e2e.svc", "4.2.12"); err != nil {
+					"http://mastodon0-gateway.e2e.svc:8080", "4.2.12"); err != nil {
 					return err
 				}
 
@@ -315,7 +315,7 @@ var _ = Describe("controller", Ordered, func() {
 					return err
 				}
 
-				code, err := httpGet("http://mastodon0-gateway.e2e.svc/health")
+				code, err := httpGet("http://mastodon0-gateway.e2e.svc:8080/health")
 				if err != nil {
 					return err
 				}
@@ -331,7 +331,7 @@ var _ = Describe("controller", Ordered, func() {
 
 			Eventually(func() error {
 				return checkMastodonVersion("mastodon.test",
-					"http://mastodon0-gateway.e2e.svc", "4.3.0-beta.1")
+					"http://mastodon0-gateway.e2e.svc:8080", "4.3.0-beta.1")
 			}).Should(Succeed())
 
 			_, _, err = helm(nil, "upgrade",

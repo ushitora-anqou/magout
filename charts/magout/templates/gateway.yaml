@@ -21,6 +21,8 @@ spec:
         app.kubernetes.io/part-of: mastodon
         magout.anqou.net/mastodon-server: {{ include "magout.fullname" . }}
     spec:
+      securityContext:
+        {{- toYaml .Values.gateway.deploy.podSecurityContext | nindent 8 }}
       initContainers:
         - name: copy-assets
           image: {{ .Values.mastodonVersion.image }}
@@ -32,12 +34,14 @@ spec:
           volumeMounts:
             - name: mnt-public
               mountPath: /mnt/public
+          securityContext:
+            {{- toYaml .Values.gateway.deploy.securityContext | nindent 12 }}
       containers:
         - name: nginx
           image: "{{ .Values.gateway.deploy.image }}"
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 8080
               protocol: TCP
           resources:
             {{- toYaml .Values.gateway.deploy.resources | nindent 12 }}
@@ -48,6 +52,8 @@ spec:
             - name: nginx-conf
               mountPath: /etc/nginx/conf.d
               readOnly: true
+          securityContext:
+            {{- toYaml .Values.gateway.deploy.securityContext | nindent 12 }}
       volumes:
         - name: mnt-public
           emptyDir: {}
@@ -117,8 +123,8 @@ data:
     proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=CACHE:10m inactive=7d max_size=1g;
     
     server {
-      listen 80;
-      listen [::]:80;
+      listen 8080;
+      listen [::]:8080;
       server_name {{ .Values.serverName }};
     
       keepalive_timeout    70;

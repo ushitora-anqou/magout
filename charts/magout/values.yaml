@@ -158,12 +158,23 @@ gateway:
   enabled: true
   deploy:
     replicas: 1
-    image: nginx:1
+    image: nginxinc/nginx-unprivileged:1
     resources: {}
     annotations: {}
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 101
+      runAsGroup: 101
+      seccompProfile:
+        type: RuntimeDefault
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
   service:
     type: ClusterIP
-    port: 80
+    port: 8080
 
 ingress:
   enabled: false
