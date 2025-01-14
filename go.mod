@@ -1,6 +1,6 @@
 module github.com/ushitora-anqou/magout
 
-go 1.22.0
+go 1.23
 
 require (
 	github.com/onsi/ginkgo/v2 v2.22.0
