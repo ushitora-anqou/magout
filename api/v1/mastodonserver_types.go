@@ -27,6 +27,9 @@ type MastodonServerSidekiqSpec struct {
 
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 
+	PodSecurityContext *corev1.PodSecurityContext `json:"podSecurityContext,omitempty"`
+	SecurityContext    *corev1.SecurityContext    `json:"securityContext,omitempty"`
+
 	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`
 }
@@ -45,6 +48,9 @@ type MastodonServerStreamingSpec struct {
 
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 
+	PodSecurityContext *corev1.PodSecurityContext `json:"podSecurityContext,omitempty"`
+	SecurityContext    *corev1.SecurityContext    `json:"securityContext,omitempty"`
+
 	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`
 }
@@ -62,6 +68,9 @@ type MastodonServerWebSpec struct {
 	Tolerations     []corev1.Toleration         `json:"tolerations,omitempty"`
 
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
+
+	PodSecurityContext *corev1.PodSecurityContext `json:"podSecurityContext,omitempty"`
+	SecurityContext    *corev1.SecurityContext    `json:"securityContext,omitempty"`
 
 	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`

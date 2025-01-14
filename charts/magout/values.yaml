@@ -21,6 +21,17 @@ mastodonServer:
     # periodicRestart:
     #   schedule: "0 0 * * *"
     #   timeZone: UTC
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 991
+      runAsGroup: 991
+      seccompProfile:
+        type: RuntimeDefault
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
   web:
     replicas: 1
     labels: {}
@@ -28,6 +39,17 @@ mastodonServer:
     envFrom: [] # CHANGE HERE
     resources: {}
     periodicRestart: {}
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 991
+      runAsGroup: 991
+      seccompProfile:
+        type: RuntimeDefault
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
   streaming:
     replicas: 1
     labels: {}
@@ -35,6 +57,17 @@ mastodonServer:
     envFrom: [] # CHANGE HERE
     resources: {}
     periodicRestart: {}
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 991
+      runAsGroup: 991
+      seccompProfile:
+        type: RuntimeDefault
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -63,17 +96,17 @@ operator:
   podLabels: {}
 
   podSecurityContext:
-    {}
-    # fsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+    seccompProfile:
+      type: RuntimeDefault
 
   securityContext:
-    {}
-    # capabilities:
-    #   drop:
-    #   - ALL
-    # readOnlyRootFilesystem: true
-    # runAsNonRoot: true
-    # runAsUser: 1000
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
 
   resources:
     {}
