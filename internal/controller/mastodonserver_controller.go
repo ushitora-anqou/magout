@@ -350,6 +350,7 @@ func (r *MastodonServerReconciler) createMigrationJob(
 	job.SetName(buildJobName(kind, server.GetName()))
 	job.SetNamespace(server.GetNamespace())
 	job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyOnFailure
+	job.Spec.Template.Spec.SecurityContext = server.Spec.MigrationJob.PodSecurityContext
 	job.Spec.Template.Spec.Containers = []corev1.Container{
 		{
 			Name:    "migration",
@@ -361,6 +362,7 @@ func (r *MastodonServerReconciler) createMigrationJob(
 				"-c",
 				"bundle exec rake db:create;\nbundle exec rake db:migrate",
 			},
+			SecurityContext: server.Spec.MigrationJob.SecurityContext,
 		},
 	}
 
