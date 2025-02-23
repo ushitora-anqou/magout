@@ -56,6 +56,7 @@ type deploy struct {
 	image                     string
 	resources                 corev1.ResourceRequirements
 	command                   []string
+	env                       []corev1.EnvVar
 	envFrom                   []corev1.EnvFromSource
 	ports                     []corev1.ContainerPort
 	livenessProbe             *corev1.Probe
@@ -359,6 +360,7 @@ func (r *MastodonServerReconciler) createMigrationJob(
 	kind jobType,
 ) error {
 	env := []corev1.EnvVar{}
+	copy(env, server.Spec.Web.Env)
 	switch kind {
 	case jobPreMigration:
 		env = append(env, corev1.EnvVar{
@@ -499,6 +501,7 @@ func (r *MastodonServerReconciler) createOrUpdateSidekiqDeployment(
 			image:                     image,
 			resources:                 spec.Resources,
 			command:                   []string{"bash", "-c", "bundle exec sidekiq"},
+			env:                       spec.Env,
 			envFrom:                   spec.EnvFrom,
 			nodeSelector:              spec.NodeSelector,
 			topologySpreadConstraints: spec.TopologySpreadConstraints,
@@ -529,6 +532,7 @@ func (r *MastodonServerReconciler) createOrUpdateStreamingDeployment(
 			image:             image,
 			resources:         spec.Resources,
 			command:           []string{"bash", "-c", "node ./streaming"},
+			env:               spec.Env,
 			envFrom:           spec.EnvFrom,
 			ports: []corev1.ContainerPort{
 				{Name: "streaming", ContainerPort: 4000, Protocol: "TCP"},
@@ -570,6 +574,7 @@ func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 			image:             image,
 			resources:         spec.Resources,
 			command:           []string{"bash", "-c", "bundle exec puma -C config/puma.rb"},
+			env:               spec.Env,
 			envFrom:           spec.EnvFrom,
 			ports: []corev1.ContainerPort{
 				{Name: "http", ContainerPort: 3000, Protocol: "TCP"},
@@ -668,6 +673,7 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 				Image:           dep.image,
 				Resources:       dep.resources,
 				Command:         dep.command,
+				Env:             dep.env,
 				EnvFrom:         dep.envFrom,
 				Ports:           dep.ports,
 				LivenessProbe:   dep.livenessProbe,

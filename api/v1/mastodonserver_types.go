@@ -15,6 +15,7 @@ type PeriodicRestartSpec struct {
 
 type MastodonServerSidekiqSpec struct {
 	Image           string                      `json:"image"`
+	Env             []corev1.EnvVar             `json:"env,omitempty"`
 	EnvFrom         []corev1.EnvFromSource      `json:"envFrom,omitempty"`
 	Labels          map[string]string           `json:"labels,omitempty"`
 	Annotations     map[string]string           `json:"annotations,omitempty"`
@@ -36,6 +37,7 @@ type MastodonServerSidekiqSpec struct {
 
 type MastodonServerStreamingSpec struct {
 	Image           string                      `json:"image"`
+	Env             []corev1.EnvVar             `json:"env,omitempty"`
 	EnvFrom         []corev1.EnvFromSource      `json:"envFrom,omitempty"`
 	Labels          map[string]string           `json:"labels,omitempty"`
 	Annotations     map[string]string           `json:"annotations,omitempty"`
@@ -57,6 +59,7 @@ type MastodonServerStreamingSpec struct {
 
 type MastodonServerWebSpec struct {
 	Image           string                      `json:"image"`
+	Env             []corev1.EnvVar             `json:"env,omitempty"`
 	EnvFrom         []corev1.EnvFromSource      `json:"envFrom,omitempty"`
 	Labels          map[string]string           `json:"labels,omitempty"`
 	Annotations     map[string]string           `json:"annotations,omitempty"`
