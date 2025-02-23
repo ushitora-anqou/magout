@@ -500,7 +500,7 @@ func (r *MastodonServerReconciler) createOrUpdateSidekiqDeployment(
 			replicas:                  spec.Replicas,
 			image:                     image,
 			resources:                 spec.Resources,
-			command:                   []string{"bash", "-c", "bundle exec sidekiq"},
+			command:                   []string{"bundle", "exec", "sidekiq"},
 			env:                       spec.Env,
 			envFrom:                   spec.EnvFrom,
 			nodeSelector:              spec.NodeSelector,
@@ -531,7 +531,7 @@ func (r *MastodonServerReconciler) createOrUpdateStreamingDeployment(
 			replicas:          spec.Replicas,
 			image:             image,
 			resources:         spec.Resources,
-			command:           []string{"bash", "-c", "node ./streaming"},
+			command:           []string{"node", "./streaming"},
 			env:               spec.Env,
 			envFrom:           spec.EnvFrom,
 			ports: []corev1.ContainerPort{
@@ -573,7 +573,7 @@ func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 			replicas:          spec.Replicas,
 			image:             image,
 			resources:         spec.Resources,
-			command:           []string{"bash", "-c", "bundle exec puma -C config/puma.rb"},
+			command:           []string{"bundle", "exec", "puma", "-C", "config/puma.rb"},
 			env:               spec.Env,
 			envFrom:           spec.EnvFrom,
 			ports: []corev1.ContainerPort{
