@@ -18,12 +18,11 @@ helm install \
 Install a Mastodon server managed by the Magout controller. First, write a values.yaml:
 
 ```yaml
+serverName: mastodon.test # Change here to your domain.
+
 mastodonVersion:
   image: ghcr.io/mastodon/mastodon:v4.2.12 # Change here to the latest version.
   streamingImage: ghcr.io/mastodon/mastodon:v4.2.12 # Change here to the latest version.
-
-gateway:
-  serverName: mastodon.test # Change here to your domain.
 
 mastodonServer:
   web:
