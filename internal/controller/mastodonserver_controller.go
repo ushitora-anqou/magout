@@ -46,6 +46,29 @@ type (
 	whatToDoType     int
 )
 
+type deploy struct {
+	appName                   string
+	component                 componentType
+	deployAnnotations         map[string]string
+	deployLabels              map[string]string
+	podAnnotations            map[string]string
+	replicas                  int32
+	image                     string
+	resources                 corev1.ResourceRequirements
+	command                   []string
+	envFrom                   []corev1.EnvFromSource
+	ports                     []corev1.ContainerPort
+	livenessProbe             *corev1.Probe
+	readinessProbe            *corev1.Probe
+	startupProbe              *corev1.Probe
+	nodeSelector              map[string]string
+	topologySpreadConstraints []corev1.TopologySpreadConstraint
+	affinity                  *corev1.Affinity
+	tolerations               []corev1.Toleration
+	securityContext           *corev1.SecurityContext
+	podSecurityContext        *corev1.PodSecurityContext
+}
+
 const (
 	domain              = "magout.anqou.net"
 	labelMastodonServer = domain + "/mastodon-server"
@@ -467,26 +490,22 @@ func (r *MastodonServerReconciler) createOrUpdateSidekiqDeployment(
 		ctx,
 		server,
 		&deploy{
-			"sidekiq",
-			componentSidekiq,
-			spec.Annotations,
-			spec.Labels,
-			spec.PodAnnotations,
-			spec.Replicas,
-			image,
-			spec.Resources,
-			[]string{"bash", "-c", "bundle exec sidekiq"},
-			spec.EnvFrom,
-			nil,
-			nil,
-			nil,
-			nil,
-			spec.NodeSelector,
-			spec.TopologySpreadConstraints,
-			&spec.Affinity,
-			spec.Tolerations,
-			spec.SecurityContext,
-			spec.PodSecurityContext,
+			appName:                   "sidekiq",
+			component:                 componentSidekiq,
+			deployAnnotations:         spec.Annotations,
+			deployLabels:              spec.Labels,
+			podAnnotations:            spec.PodAnnotations,
+			replicas:                  spec.Replicas,
+			image:                     image,
+			resources:                 spec.Resources,
+			command:                   []string{"bash", "-c", "bundle exec sidekiq"},
+			envFrom:                   spec.EnvFrom,
+			nodeSelector:              spec.NodeSelector,
+			topologySpreadConstraints: spec.TopologySpreadConstraints,
+			affinity:                  &spec.Affinity,
+			tolerations:               spec.Tolerations,
+			securityContext:           spec.SecurityContext,
+			podSecurityContext:        spec.PodSecurityContext,
 		},
 	)
 }
@@ -501,20 +520,20 @@ func (r *MastodonServerReconciler) createOrUpdateStreamingDeployment(
 		ctx,
 		server,
 		&deploy{
-			"node",
-			componentStreaming,
-			spec.Annotations,
-			spec.Labels,
-			spec.PodAnnotations,
-			spec.Replicas,
-			image,
-			spec.Resources,
-			[]string{"bash", "-c", "node ./streaming"},
-			spec.EnvFrom,
-			[]corev1.ContainerPort{
+			appName:           "node",
+			component:         componentStreaming,
+			deployAnnotations: spec.Annotations,
+			deployLabels:      spec.Labels,
+			podAnnotations:    spec.PodAnnotations,
+			replicas:          spec.Replicas,
+			image:             image,
+			resources:         spec.Resources,
+			command:           []string{"bash", "-c", "node ./streaming"},
+			envFrom:           spec.EnvFrom,
+			ports: []corev1.ContainerPort{
 				{Name: "streaming", ContainerPort: 4000, Protocol: "TCP"},
 			},
-			&corev1.Probe{
+			livenessProbe: &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					HTTPGet: &corev1.HTTPGetAction{
 						Port: intstr.FromString("streaming"),
@@ -522,14 +541,12 @@ func (r *MastodonServerReconciler) createOrUpdateStreamingDeployment(
 					},
 				},
 			},
-			nil,
-			nil,
-			spec.NodeSelector,
-			spec.TopologySpreadConstraints,
-			&spec.Affinity,
-			spec.Tolerations,
-			spec.SecurityContext,
-			spec.PodSecurityContext,
+			nodeSelector:              spec.NodeSelector,
+			topologySpreadConstraints: spec.TopologySpreadConstraints,
+			affinity:                  &spec.Affinity,
+			tolerations:               spec.Tolerations,
+			securityContext:           spec.SecurityContext,
+			podSecurityContext:        spec.PodSecurityContext,
 		},
 	)
 }
@@ -544,27 +561,27 @@ func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 		ctx,
 		server,
 		&deploy{
-			"puma",
-			componentWeb,
-			spec.Annotations,
-			spec.Labels,
-			spec.PodAnnotations,
-			spec.Replicas,
-			image,
-			spec.Resources,
-			[]string{"bash", "-c", "bundle exec puma -C config/puma.rb"},
-			spec.EnvFrom,
-			[]corev1.ContainerPort{
+			appName:           "puma",
+			component:         componentWeb,
+			deployAnnotations: spec.Annotations,
+			deployLabels:      spec.Labels,
+			podAnnotations:    spec.PodAnnotations,
+			replicas:          spec.Replicas,
+			image:             image,
+			resources:         spec.Resources,
+			command:           []string{"bash", "-c", "bundle exec puma -C config/puma.rb"},
+			envFrom:           spec.EnvFrom,
+			ports: []corev1.ContainerPort{
 				{Name: "http", ContainerPort: 3000, Protocol: "TCP"},
 			},
-			&corev1.Probe{
+			livenessProbe: &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					TCPSocket: &corev1.TCPSocketAction{
 						Port: intstr.FromString("http"),
 					},
 				},
 			},
-			&corev1.Probe{
+			readinessProbe: &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					HTTPGet: &corev1.HTTPGetAction{
 						Port: intstr.FromString("http"),
@@ -572,7 +589,7 @@ func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 					},
 				},
 			},
-			&corev1.Probe{
+			startupProbe: &corev1.Probe{
 				ProbeHandler: corev1.ProbeHandler{
 					HTTPGet: &corev1.HTTPGetAction{
 						Port: intstr.FromString("http"),
@@ -582,37 +599,14 @@ func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 				FailureThreshold: 30,
 				PeriodSeconds:    5,
 			},
-			spec.NodeSelector,
-			spec.TopologySpreadConstraints,
-			&spec.Affinity,
-			spec.Tolerations,
-			spec.SecurityContext,
-			spec.PodSecurityContext,
+			nodeSelector:              spec.NodeSelector,
+			topologySpreadConstraints: spec.TopologySpreadConstraints,
+			affinity:                  &spec.Affinity,
+			tolerations:               spec.Tolerations,
+			securityContext:           spec.SecurityContext,
+			podSecurityContext:        spec.PodSecurityContext,
 		},
 	)
-}
-
-type deploy struct {
-	appName                   string
-	component                 componentType
-	deployAnnotations         map[string]string
-	deployLabels              map[string]string
-	podAnnotations            map[string]string
-	replicas                  int32
-	image                     string
-	resources                 corev1.ResourceRequirements
-	command                   []string
-	envFrom                   []corev1.EnvFromSource
-	ports                     []corev1.ContainerPort
-	livenessProbe             *corev1.Probe
-	readinessProbe            *corev1.Probe
-	startupProbe              *corev1.Probe
-	nodeSelector              map[string]string
-	topologySpreadConstraints []corev1.TopologySpreadConstraint
-	affinity                  *corev1.Affinity
-	tolerations               []corev1.Toleration
-	securityContext           *corev1.SecurityContext
-	podSecurityContext        *corev1.PodSecurityContext
 }
 
 func (r *MastodonServerReconciler) createOrUpdateDeployment(
