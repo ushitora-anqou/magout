@@ -16,6 +16,10 @@ spec:
     annotations:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- with .Values.mastodonServer.sidekiq.env }}
+    env:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
     {{- with .Values.mastodonServer.sidekiq.envFrom }}
     envFrom:
       {{- toYaml . | nindent 6 }}
@@ -49,6 +53,10 @@ spec:
     annotations:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- with .Values.mastodonServer.web.env }}
+    env:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
     {{- with .Values.mastodonServer.web.envFrom }}
     envFrom:
       {{- toYaml . | nindent 6 }}
@@ -80,6 +88,10 @@ spec:
     {{- end }}
     {{- with .Values.mastodonServer.streaming.annotations }}
     annotations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.streaming.env }}
+    env:
       {{- toYaml . | nindent 6 }}
     {{- end }}
     {{- with .Values.mastodonServer.streaming.envFrom }}
