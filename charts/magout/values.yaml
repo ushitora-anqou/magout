@@ -33,6 +33,8 @@ mastodonServer:
       capabilities:
         drop:
           - ALL
+    volumeMounts: []
+    volumes: []
   web:
     replicas: 1
     labels: {}
@@ -52,6 +54,8 @@ mastodonServer:
       capabilities:
         drop:
           - ALL
+    volumeMounts: []
+    volumes: []
   streaming:
     replicas: 1
     labels: {}
@@ -71,6 +75,8 @@ mastodonServer:
       capabilities:
         drop:
           - ALL
+    volumeMounts: []
+    volumes: []
 
 serviceAccount:
   # Specifies whether a service account should be created
