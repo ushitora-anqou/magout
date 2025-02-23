@@ -79,20 +79,14 @@ type MastodonServerWebSpec struct {
 	Replicas int32 `json:"replicas,omitempty"`
 }
 
-type MastodonServerMigrationJob struct {
-	PodSecurityContext *corev1.PodSecurityContext `json:"podSecurityContext,omitempty"`
-	SecurityContext    *corev1.SecurityContext    `json:"securityContext,omitempty"`
-}
-
 // MastodonServerSpec defines the desired state of MastodonServer.
 type MastodonServerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	Web          MastodonServerWebSpec       `json:"web"`
-	Streaming    MastodonServerStreamingSpec `json:"streaming"`
-	Sidekiq      MastodonServerSidekiqSpec   `json:"sidekiq"`
-	MigrationJob MastodonServerMigrationJob  `json:"migrationJob,omitempty"`
+	Web       MastodonServerWebSpec       `json:"web"`
+	Streaming MastodonServerStreamingSpec `json:"streaming"`
+	Sidekiq   MastodonServerSidekiqSpec   `json:"sidekiq"`
 }
 
 type MastodonServerMigratingStatus struct {

@@ -114,12 +114,3 @@ spec:
     securityContext:
       {{- toYaml . | nindent 6 }}
     {{- end }}
-  migrationJob:
-    {{- with .Values.mastodonServer.migrationJob.podSecurityContext }}
-    podSecurityContext:
-      {{- toYaml . | nindent 6 }}
-    {{- end }}
-    {{- with .Values.mastodonServer.migrationJob.securityContext }}
-    securityContext:
-      {{- toYaml . | nindent 6 }}
-    {{- end }}
