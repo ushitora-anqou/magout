@@ -15,6 +15,7 @@ mastodonServer:
     replicas: 1
     labels: {}
     annotations: {}
+    env: []
     envFrom: [] # CHANGE HERE
     resources: {}
     periodicRestart: {}
@@ -36,6 +37,7 @@ mastodonServer:
     replicas: 1
     labels: {}
     annotations: {}
+    env: []
     envFrom: [] # CHANGE HERE
     resources: {}
     periodicRestart: {}
@@ -54,6 +56,7 @@ mastodonServer:
     replicas: 1
     labels: {}
     annotations: {}
+    env: []
     envFrom: [] # CHANGE HERE
     resources: {}
     periodicRestart: {}
@@ -200,6 +203,7 @@ periodicMaintenance:
   schedule: "0 0 * * *"
   timeZone: "UTC"
   successfulJobsHistoryLimit: 1
+  env: []
   envFrom: []
   resources: {}
   removeStatuses: # tootctl statuses remove

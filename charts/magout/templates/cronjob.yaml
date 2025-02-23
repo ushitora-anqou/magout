@@ -39,6 +39,10 @@ spec:
               {{- if .Values.periodicMaintenance.refreshAccounts.enabled }}
               bin/tootctl accounts refresh --all
               {{- end }}
+            {{- with .Values.periodicMaintenance.env }}
+            env:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
             {{- with .Values.periodicMaintenance.envFrom }}
             envFrom:
               {{- toYaml . | nindent 14 }}
