@@ -68,6 +68,8 @@ type deploy struct {
 	tolerations               []corev1.Toleration
 	securityContext           *corev1.SecurityContext
 	podSecurityContext        *corev1.PodSecurityContext
+	volumes                   []corev1.Volume
+	volumeMounts              []corev1.VolumeMount
 }
 
 const (
@@ -509,6 +511,8 @@ func (r *MastodonServerReconciler) createOrUpdateSidekiqDeployment(
 			tolerations:               spec.Tolerations,
 			securityContext:           spec.SecurityContext,
 			podSecurityContext:        spec.PodSecurityContext,
+			volumes:                   spec.Volumes,
+			volumeMounts:              spec.VolumeMounts,
 		},
 	)
 }
@@ -551,6 +555,8 @@ func (r *MastodonServerReconciler) createOrUpdateStreamingDeployment(
 			tolerations:               spec.Tolerations,
 			securityContext:           spec.SecurityContext,
 			podSecurityContext:        spec.PodSecurityContext,
+			volumes:                   spec.Volumes,
+			volumeMounts:              spec.VolumeMounts,
 		},
 	)
 }
@@ -610,6 +616,8 @@ func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 			tolerations:               spec.Tolerations,
 			securityContext:           spec.SecurityContext,
 			podSecurityContext:        spec.PodSecurityContext,
+			volumes:                   spec.Volumes,
+			volumeMounts:              spec.VolumeMounts,
 		},
 	)
 }
@@ -680,6 +688,7 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 				ReadinessProbe:  dep.readinessProbe,
 				StartupProbe:    dep.startupProbe,
 				SecurityContext: dep.securityContext,
+				VolumeMounts:    dep.volumeMounts,
 			},
 		}
 
@@ -689,6 +698,8 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 		deploy.Spec.Template.Spec.Tolerations = dep.tolerations
 
 		deploy.Spec.Template.Spec.SecurityContext = dep.podSecurityContext
+
+		deploy.Spec.Template.Spec.Volumes = dep.volumes
 
 		return ctrl.SetControllerReference(server, &deploy, r.Scheme)
 	})

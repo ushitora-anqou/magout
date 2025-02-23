@@ -31,6 +31,9 @@ type MastodonServerSidekiqSpec struct {
 	PodSecurityContext *corev1.PodSecurityContext `json:"podSecurityContext,omitempty"`
 	SecurityContext    *corev1.SecurityContext    `json:"securityContext,omitempty"`
 
+	Volumes      []corev1.Volume      `json:"volumes,omitempty"`
+	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
+
 	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`
 }
@@ -53,6 +56,9 @@ type MastodonServerStreamingSpec struct {
 	PodSecurityContext *corev1.PodSecurityContext `json:"podSecurityContext,omitempty"`
 	SecurityContext    *corev1.SecurityContext    `json:"securityContext,omitempty"`
 
+	Volumes      []corev1.Volume      `json:"volumes,omitempty"`
+	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
+
 	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`
 }
@@ -74,6 +80,9 @@ type MastodonServerWebSpec struct {
 
 	PodSecurityContext *corev1.PodSecurityContext `json:"podSecurityContext,omitempty"`
 	SecurityContext    *corev1.SecurityContext    `json:"securityContext,omitempty"`
+
+	Volumes      []corev1.Volume      `json:"volumes,omitempty"`
+	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
 
 	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`

@@ -40,6 +40,14 @@ spec:
     securityContext:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- with .Values.mastodonServer.sidekiq.volumeMounts }}
+    volumeMounts:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.sidekiq.volumes }}
+    volumes:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
   web:
     image: {{ .Values.mastodonVersion.image }}
     {{- with .Values.mastodonServer.web.replicas }}
@@ -77,6 +85,14 @@ spec:
     securityContext:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- with .Values.mastodonServer.web.volumeMounts }}
+    volumeMounts:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.web.volumes }}
+    volumes:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
   streaming:
     image: {{ .Values.mastodonVersion.streamingImage }}
     {{- with .Values.mastodonServer.streaming.replicas }}
@@ -112,5 +128,13 @@ spec:
     {{- end }}
     {{- with .Values.mastodonServer.streaming.securityContext }}
     securityContext:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.streaming.volumeMounts }}
+    volumeMounts:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.mastodonServer.streaming.volumes }}
+    volumes:
       {{- toYaml . | nindent 6 }}
     {{- end }}
