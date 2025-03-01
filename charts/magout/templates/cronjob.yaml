@@ -53,7 +53,11 @@ spec:
             resources:
               {{- toYaml . | nindent 14 }}
             {{- end }}
+            securityContext:
+              {{- toYaml .Values.periodicMaintenance.securityContext | nindent 14 }}
           restartPolicy: Never
+          securityContext:
+            {{- toYaml .Values.periodicMaintenance.podSecurityContext | nindent 12 }}
   schedule: {{ .Values.periodicMaintenance.schedule }}
   timeZone: {{ .Values.periodicMaintenance.timeZone }}
   successfulJobsHistoryLimit: {{ .Values.periodicMaintenance.successfulJobsHistoryLimit }}

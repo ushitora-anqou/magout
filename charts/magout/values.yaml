@@ -200,6 +200,17 @@ periodicMaintenance:
   env: []
   envFrom: []
   resources: {}
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 991
+    runAsGroup: 991
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
   removeStatuses: # tootctl statuses remove
     enabled: false
   pruneAccounts: # tootctl accounts prune
