@@ -433,20 +433,12 @@ func (r *MastodonServerReconciler) createOrUpdatePeriodicRestartCronJob(
 	cronJob.SetNamespace(server.GetNamespace())
 
 	if _, err := ctrl.CreateOrUpdate(ctx, r.Client, &cronJob, func() error {
-		if spec == nil {
-			cronJob.Spec.Schedule = "0 0 * * *"
-			tru := true
-			cronJob.Spec.Suspend = &tru
-		} else {
-			cronJob.Spec.Schedule = spec.Schedule
-			cronJob.Spec.TimeZone = spec.TimeZone
-			fals := false
-			cronJob.Spec.Suspend = &fals
-		}
 		cronJob.Spec.ConcurrencyPolicy = batchv1.ForbidConcurrent
-		cronJob.Spec.JobTemplate.Spec.Template.Spec.ServiceAccountName = r.restartServiceAccountName
-		cronJob.Spec.JobTemplate.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyOnFailure
-		cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers = []corev1.Container{
+
+		templ := &cronJob.Spec.JobTemplate.Spec.Template.Spec
+		templ.ServiceAccountName = r.restartServiceAccountName
+		templ.RestartPolicy = corev1.RestartPolicyOnFailure
+		templ.Containers = []corev1.Container{
 			{
 				Name:            "restart",
 				Image:           r.runningImage,
@@ -459,6 +451,20 @@ func (r *MastodonServerReconciler) createOrUpdatePeriodicRestartCronJob(
 				},
 			},
 		}
+
+		if spec == nil || !spec.Enabled {
+			cronJob.Spec.Schedule = "0 0 * * *"
+			tru := true
+			cronJob.Spec.Suspend = &tru
+		} else {
+			cronJob.Spec.Schedule = spec.Schedule
+			cronJob.Spec.TimeZone = spec.TimeZone
+			fals := false
+			cronJob.Spec.Suspend = &fals
+			templ.SecurityContext = spec.PodSecurityContext
+			templ.Containers[0].SecurityContext = spec.SecurityContext
+		}
+
 		return ctrl.SetControllerReference(server, &cronJob, r.Scheme)
 	}); err != nil {
 		return err
