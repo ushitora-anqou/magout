@@ -9,8 +9,11 @@ import (
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 type PeriodicRestartSpec struct {
-	Schedule string  `json:"schedule"`
-	TimeZone *string `json:"timeZone,omitempty"`
+	Enabled            bool                       `json:"enabled,omitempty"`
+	Schedule           string                     `json:"schedule,omitempty"`
+	TimeZone           *string                    `json:"timeZone,omitempty"`
+	PodSecurityContext *corev1.PodSecurityContext `json:"podSecurityContext,omitempty"`
+	SecurityContext    *corev1.SecurityContext    `json:"securityContext,omitempty"`
 }
 
 type MastodonServerSidekiqSpec struct {
