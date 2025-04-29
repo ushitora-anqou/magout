@@ -27,6 +27,8 @@ linters-settings:
         disabled: true
       - name: dot-imports
         disabled: true
+      - name: confusing-results
+        disabled: true
 
 linters:
   enable-all: true
