@@ -8,6 +8,9 @@ spec:
   jobTemplate:
     spec:
       template:
+        metadata:
+          labels:
+            magout.anqou.net/component: maint
         spec:
           containers:
           - command:
