@@ -16,6 +16,6 @@ func TestE2E(t *testing.T) {
 	SetDefaultEventuallyTimeout(200 * time.Second)
 	SetDefaultEventuallyPollingInterval(1 * time.Second)
 
-	_, _ = fmt.Fprintf(GinkgoWriter, "Starting magout suite\n")
+	_, _ = fmt.Fprint(GinkgoWriter, "Starting magout suite\n")
 	RunSpecs(t, "e2e suite")
 }

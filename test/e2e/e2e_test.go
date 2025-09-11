@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,7 +28,7 @@ var (
 
 func command(input []byte, args ...string) ([]byte, []byte, error) {
 	var stdout, stderr bytes.Buffer
-	command := exec.Command(args[0], args[1:]...)
+	command := exec.CommandContext(context.Background(), args[0], args[1:]...)
 	command.Stdout = &stdout
 	command.Stderr = &stderr
 	if input != nil {
