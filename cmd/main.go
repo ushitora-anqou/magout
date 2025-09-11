@@ -183,9 +183,7 @@ func mainController() error {
 		metricsServerOptions.FilterProvider = filters.WithAuthenticationAndAuthorization
 	}
 
-	cfg := ctrl.GetConfigOrDie()
-	cfg.Timeout = 1 * time.Minute
-	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		Metrics:                metricsServerOptions,
 		WebhookServer:          webhookServer,
