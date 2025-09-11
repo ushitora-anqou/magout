@@ -2,7 +2,7 @@
 
 Magout is a Kubernetes operator for Mastodon, which allows you to deploy Mastodon servers really easily on Kubernetes. Magout is being used for [mstdn.anqou.net](https://mstdn.anqou.net/).
 
-Currently, Magout supports Kubernetes 1.31, 1.32, and 1.33.
+Currently, Magout supports Kubernetes 1.34, 1.33, and 1.32.
 
 ## Quick Start
 
