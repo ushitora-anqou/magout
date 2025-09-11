@@ -91,6 +91,8 @@ func mainRestart() error {
 			mastodonServer.Spec.Streaming.PodAnnotations = map[string]string{}
 		}
 		mastodonServer.Spec.Streaming.PodAnnotations[annotRestartTime] = now
+	default:
+		return fmt.Errorf("invalid target: %s", target)
 	}
 
 	if err := cli.Update(ctx, &mastodonServer); err != nil {

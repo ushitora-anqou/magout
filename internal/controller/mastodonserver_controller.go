@@ -308,9 +308,10 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	case shouldDoNothing:
 		return ctrl.Result{}, nil
-	}
 
-	panic("unreachable")
+	default:
+		panic("unreachable")
+	}
 }
 
 func (r *MastodonServerReconciler) fetchK8sStatus(
@@ -640,18 +641,18 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 	deploy.SetNamespace(server.GetNamespace())
 
 	result, err := ctrl.CreateOrUpdate(ctx, r.Client, &deploy, func() error {
-		if deploy.ObjectMeta.Annotations == nil {
-			deploy.ObjectMeta.Annotations = map[string]string{}
+		if deploy.Annotations == nil {
+			deploy.Annotations = map[string]string{}
 		}
 		for k, v := range dep.deployAnnotations {
-			deploy.ObjectMeta.Annotations[k] = v
+			deploy.Annotations[k] = v
 		}
 
-		if deploy.ObjectMeta.Labels == nil {
-			deploy.ObjectMeta.Labels = map[string]string{}
+		if deploy.Labels == nil {
+			deploy.Labels = map[string]string{}
 		}
 		for k, v := range dep.deployLabels {
-			deploy.ObjectMeta.Labels[k] = v
+			deploy.Labels[k] = v
 		}
 
 		selector := map[string]string{
@@ -899,7 +900,8 @@ func decideWhatToDo(k8sStatus *k8sStatus) (whatToDoType, error) {
 
 	case preJNotCompleted || postJNotCompleted: // S34
 		return shouldDoNothing, nil
-	}
 
-	return -1, errors.New("unknown current status")
+	default:
+		return -1, errors.New("unknown current status")
+	}
 }
