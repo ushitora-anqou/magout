@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -159,20 +160,17 @@ type k8sStatus struct {
 type MastodonServerReconciler struct {
 	Client                    client.Client
 	Scheme                    *runtime.Scheme
-	runningImage              string
 	restartServiceAccountName string
 }
 
 func NewMastodonServerReconciler(
 	cli client.Client,
 	scheme *runtime.Scheme,
-	runningImage string,
 	restartServiceAccountName string,
 ) *MastodonServerReconciler {
 	return &MastodonServerReconciler{
 		Client:                    cli,
 		Scheme:                    scheme,
-		runningImage:              runningImage,
 		restartServiceAccountName: restartServiceAccountName,
 	}
 }
@@ -423,12 +421,35 @@ func (r *MastodonServerReconciler) createOrUpdateCronJobs(
 	return nil
 }
 
+func (r *MastodonServerReconciler) getRunningImage(ctx context.Context) (string, error) {
+	podName := os.Getenv("POD_NAME")
+	podNamespace := os.Getenv("POD_NAMESPACE")
+	if podName == "" || podNamespace == "" {
+		return "", errors.New("POD_NAME and POD_NAMESPACE should be set")
+	}
+
+	var pod corev1.Pod
+	if err := r.Client.Get(
+		ctx,
+		types.NamespacedName{Name: podName, Namespace: podNamespace},
+		&pod,
+	); err != nil {
+		return "", fmt.Errorf("failed to get running Pod: %w", err)
+	}
+	return pod.Spec.Containers[0].Image, nil
+}
+
 func (r *MastodonServerReconciler) createOrUpdatePeriodicRestartCronJob(
 	ctx context.Context,
 	server *magoutv1.MastodonServer,
 	component componentType,
 	spec *magoutv1.PeriodicRestartSpec,
 ) error {
+	runningImage, err := r.getRunningImage(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get running image: %w", err)
+	}
+
 	var cronJob batchv1.CronJob
 	cronJob.SetName(buildPeriodicRestartCronJobName(component, server.GetName()))
 	cronJob.SetNamespace(server.GetNamespace())
@@ -442,7 +463,7 @@ func (r *MastodonServerReconciler) createOrUpdatePeriodicRestartCronJob(
 		templ.Containers = []corev1.Container{
 			{
 				Name:            "restart",
-				Image:           r.runningImage,
+				Image:           runningImage,
 				ImagePullPolicy: corev1.PullIfNotPresent,
 				Args: []string{
 					"restart",

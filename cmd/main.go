@@ -30,7 +30,6 @@ import (
 
 	magoutv1 "github.com/ushitora-anqou/magout/api/v1"
 	"github.com/ushitora-anqou/magout/internal/controller"
-	corev1 "k8s.io/api/core/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -213,15 +212,9 @@ func mainController() error {
 		return err
 	}
 
-	runningImage, err := getRunningImage()
-	if err != nil {
-		return err
-	}
-
 	reconciler := controller.NewMastodonServerReconciler(
 		mgr.GetClient(),
 		mgr.GetScheme(),
-		runningImage,
 		restartServiceAccountName,
 	)
 	if err := reconciler.SetupWithManager(mgr); err != nil {
@@ -260,24 +253,4 @@ func main() {
 			os.Exit(1)
 		}
 	}
-}
-
-func getRunningImage() (string, error) {
-	podName := os.Getenv("POD_NAME")
-	podNamespace := os.Getenv("POD_NAMESPACE")
-	if podName == "" || podNamespace == "" {
-		return "", errors.New("POD_NAME and POD_NAMESPACE should be set")
-	}
-
-	cli, err := client.New(config.GetConfigOrDie(), client.Options{Scheme: scheme})
-	if err != nil {
-		return "", err
-	}
-
-	var pod corev1.Pod
-	if err := cli.Get(context.Background(),
-		types.NamespacedName{Name: podName, Namespace: podNamespace}, &pod); err != nil {
-		return "", err
-	}
-	return pod.Spec.Containers[0].Image, nil
 }
