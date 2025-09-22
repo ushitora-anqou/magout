@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"context"
+	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -11,6 +12,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -78,12 +80,26 @@ var _ = Describe("MastodonServer Controller", func() {
 			controllerReconciler := controller.NewMastodonServerReconciler(
 				k8sClient,
 				k8sClient.Scheme(),
-				"test-image",
 				"rest-restart-sa",
 			)
 
-			By("Creating a MastodonServer resource")
 			var err error
+			err = os.Setenv("POD_NAME", "operator-pod")
+			Expect(err).NotTo(HaveOccurred())
+			err = os.Setenv("POD_NAMESPACE", namespace)
+			Expect(err).NotTo(HaveOccurred())
+			err = k8sClient.Create(ctx, &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{Name: "operator-pod", Namespace: namespace},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{
+						Name:  "operator",
+						Image: "test-image",
+					}},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Creating a MastodonServer resource")
 			server := &magoutv1.MastodonServer{}
 			server.SetName(mastodonServerName)
 			server.SetNamespace(namespace)
