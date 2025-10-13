@@ -19,9 +19,9 @@ const _deployStatusType_name = "deployStatusUnknowndeployStatusNotFounddeploySta
 var _deployStatusType_index = [...]uint8{0, 19, 39, 56, 76}
 
 func (i deployStatusType) String() string {
-	i -= 8
-	if i < 0 || i >= deployStatusType(len(_deployStatusType_index)-1) {
-		return "deployStatusType(" + strconv.FormatInt(int64(i+8), 10) + ")"
+	idx := int(i) - 8
+	if i < 8 || idx >= len(_deployStatusType_index)-1 {
+		return "deployStatusType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _deployStatusType_name[_deployStatusType_index[i]:_deployStatusType_index[i+1]]
+	return _deployStatusType_name[_deployStatusType_index[idx]:_deployStatusType_index[idx+1]]
 }

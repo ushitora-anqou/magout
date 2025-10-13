@@ -20,9 +20,9 @@ const _jobStatusType_name = "jobStatusUnknownjobStatusNotFoundjobStatusCompleted
 var _jobStatusType_index = [...]uint8{0, 16, 33, 51, 72, 87}
 
 func (i jobStatusType) String() string {
-	i -= 12
-	if i < 0 || i >= jobStatusType(len(_jobStatusType_index)-1) {
-		return "jobStatusType(" + strconv.FormatInt(int64(i+12), 10) + ")"
+	idx := int(i) - 12
+	if i < 12 || idx >= len(_jobStatusType_index)-1 {
+		return "jobStatusType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _jobStatusType_name[_jobStatusType_index[i]:_jobStatusType_index[i+1]]
+	return _jobStatusType_name[_jobStatusType_index[idx]:_jobStatusType_index[idx+1]]
 }
