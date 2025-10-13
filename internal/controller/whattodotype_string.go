@@ -24,9 +24,9 @@ const _whatToDoType_name = "shouldCreatePreMigrationJobshouldCreatePostMigration
 var _whatToDoType_index = [...]uint16{0, 27, 55, 79, 105, 140, 186, 214, 241, 256}
 
 func (i whatToDoType) String() string {
-	i -= 17
-	if i < 0 || i >= whatToDoType(len(_whatToDoType_index)-1) {
-		return "whatToDoType(" + strconv.FormatInt(int64(i+17), 10) + ")"
+	idx := int(i) - 17
+	if i < 17 || idx >= len(_whatToDoType_index)-1 {
+		return "whatToDoType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _whatToDoType_name[_whatToDoType_index[i]:_whatToDoType_index[i+1]]
+	return _whatToDoType_name[_whatToDoType_index[idx]:_whatToDoType_index[idx+1]]
 }
