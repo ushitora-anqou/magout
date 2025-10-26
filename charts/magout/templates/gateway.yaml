@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "magout.fullname" . }}-gateway
+  namespace: {{ .Release.Namespace }}
   annotations:
     {{- toYaml .Values.gateway.deploy.annotations | nindent 4 }}
 spec:
