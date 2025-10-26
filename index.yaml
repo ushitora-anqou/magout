@@ -3,6 +3,19 @@ entries:
   magout:
   - apiVersion: v2
     appVersion: 0.1.13
+    created: "2025-10-26T03:01:02.268517888Z"
+    description: A Helm chart for Magout, a Kubernetes operator for Mastodon. This
+      chart includes a Deployment resource for the Magout operator, a MastodonServer
+      resource to deploy a Mastodon server, and other stuff necessary for the deploy.
+      Users must use this chart together with magout-cluster-wide chart.
+    digest: 97e9ca9e147e88a2779d35b7299cc45d7080c6db11a9099f7a97de53a608a0d3
+    name: magout
+    type: application
+    urls:
+    - https://github.com/ushitora-anqou/magout/releases/download/magout-chart-v0.1.25/magout-0.1.25.tgz
+    version: 0.1.25
+  - apiVersion: v2
+    appVersion: 0.1.13
     created: "2025-09-22T08:42:36.545237266Z"
     description: A Helm chart for Magout, a Kubernetes operator for Mastodon. This
       chart includes a Deployment resource for the Magout operator, a MastodonServer
@@ -428,4 +441,4 @@ entries:
     urls:
     - https://github.com/ushitora-anqou/magout/releases/download/magout-mastodon-server-chart-v0.1.0/magout-mastodon-server-0.1.0.tgz
     version: 0.1.0
-generated: "2025-09-22T08:42:36.545485172Z"
+generated: "2025-10-26T03:01:02.268740954Z"
