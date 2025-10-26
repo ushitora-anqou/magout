@@ -3,6 +3,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ include "magout.fullname" . }}-maint
+  namespace: {{ .Release.Namespace }}
 spec:
   concurrencyPolicy: Forbid
   jobTemplate:

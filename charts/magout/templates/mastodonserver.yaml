@@ -2,6 +2,7 @@ apiVersion: magout.anqou.net/v1
 kind: MastodonServer
 metadata:
   name: {{ include "magout.fullname" . }}
+  namespace: {{ .Release.Namespace }}
 spec:
   sidekiq:
     image: {{ .Values.mastodonVersion.image }}
