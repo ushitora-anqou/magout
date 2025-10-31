@@ -7,11 +7,13 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+	"k8s.io/client-go/discovery"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -30,6 +32,7 @@ import (
 
 	magoutv1 "github.com/ushitora-anqou/magout/api/v1"
 	"github.com/ushitora-anqou/magout/internal/controller"
+	"github.com/ushitora-anqou/magout/internal/liveness"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -223,7 +226,16 @@ func mainController() error {
 	}
 	// +kubebuilder:scaffold:builder
 
-	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+	discoveryClient, err := discovery.NewDiscoveryClientForConfigAndClient(mgr.GetConfig(), mgr.GetHTTPClient())
+	if err != nil {
+		return fmt.Errorf("discovery.NewDiscoveryClientForConfigAndClient: %w", err)
+	}
+	livenessChecker := liveness.NewChecker(discoveryClient.RESTClient())
+	if err := mgr.Add(livenessChecker); err != nil {
+		return fmt.Errorf("liveness checker: %w", err)
+	}
+
+	if err := mgr.AddHealthzCheck("healthz", handlerHealthz(livenessChecker)); err != nil {
 		setupLog.Error(err, "unable to set up health check")
 		return err
 	}
@@ -252,5 +264,14 @@ func main() {
 			slog.Error("subcommand controller failed", "error", err)
 			os.Exit(1)
 		}
+	}
+}
+
+func handlerHealthz(c *liveness.Checker) func(req *http.Request) error {
+	return func(_ *http.Request) error {
+		if c.IsAlive() {
+			return nil
+		}
+		return errors.New("not alive")
 	}
 }
