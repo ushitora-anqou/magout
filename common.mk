@@ -22,7 +22,7 @@ YQ ?= $(LOCALBIN)/yq-$(YQ_VERSION)
 KUBECTL ?= $(LOCALBIN)/kubectl-$(KUBECTL_VERSION)
 
 # Image URL to use all building/pushing image targets
-IMG ?= magout:latest
+IMG ?= ghcr.io/ushitora-anqou/magout:latest
 
 KIND_TEST_CLUSTER ?= magout-test-cluster
 

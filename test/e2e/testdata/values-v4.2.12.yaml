@@ -1,5 +1,9 @@
 fullnameOverride: "mastodon0"
 
+operator:
+  image:
+    tag: latest
+
 serverName: mastodon.test
 
 mastodonVersion:
