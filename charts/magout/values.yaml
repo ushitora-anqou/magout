@@ -156,8 +156,7 @@ operator:
       drop:
         - ALL
 
-  resources:
-    {}
+  resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -211,8 +210,8 @@ gateway:
     annotations: {}
     podSecurityContext:
       runAsNonRoot: true
-      runAsUser: 101
-      runAsGroup: 101
+      runAsUser: 991
+      runAsGroup: 991
       seccompProfile:
         type: RuntimeDefault
     securityContext:
