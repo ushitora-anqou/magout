@@ -7,7 +7,6 @@ import (
 
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 var log = ctrl.Log.WithName("liveness")
@@ -17,11 +16,6 @@ type Checker struct {
 	interval   time.Duration
 	dead       atomic.Bool
 }
-
-var (
-	_ manager.Runnable               = (*Checker)(nil)
-	_ manager.LeaderElectionRunnable = (*Checker)(nil)
-)
 
 func NewChecker(restClient rest.Interface) *Checker {
 	return &Checker{
@@ -36,8 +30,6 @@ func (c *Checker) IsAlive() bool {
 }
 
 func (c *Checker) Start(ctx context.Context) error {
-	log.Info("liveness checker starts")
-
 	tick := time.NewTicker(c.interval)
 	defer tick.Stop()
 
@@ -49,10 +41,6 @@ func (c *Checker) Start(ctx context.Context) error {
 			return nil
 		}
 	}
-}
-
-func (*Checker) NeedLeaderElection() bool {
-	return false
 }
 
 func (c *Checker) check(ctx context.Context) {
