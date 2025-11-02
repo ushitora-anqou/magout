@@ -38,7 +38,6 @@ spec:
           args:
             - -restart-service-account-name={{ include "magout.serviceAccountName" . }}
             - -namespace={{ .Release.Namespace }}
-            - -leader-elect
           ports:
             {{- toYaml .Values.operator.ports | nindent 12 }}
           livenessProbe:
