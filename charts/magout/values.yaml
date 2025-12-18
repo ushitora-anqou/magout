@@ -230,6 +230,18 @@ ingress:
   tls:
     enabled: false
 
+httproute:
+  enabled: false
+  labels: {}
+  annotations: {}
+  parentRefs: []
+  # - name: some-gateway
+  #   namespace: some-gateway-namespace
+  #   sectionName: https
+  timeouts: {}
+  # request: 0s
+  # backendRequest: 0s
+
 periodicMaintenance:
   enabled: false
   schedule: "0 0 * * *"
