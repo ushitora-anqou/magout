@@ -360,8 +360,7 @@ func (r *MastodonServerReconciler) createMigrationJob(
 	imageMap *ImageMap,
 	kind jobType,
 ) error {
-	env := []corev1.EnvVar{}
-	copy(env, server.Spec.Web.Env)
+	env := append([]corev1.EnvVar{}, server.Spec.Web.Env...)
 	switch kind {
 	case jobPreMigration:
 		env = append(env, corev1.EnvVar{
