@@ -2,6 +2,19 @@ apiVersion: v1
 entries:
   magout:
   - apiVersion: v2
+    appVersion: 0.1.19
+    created: "2026-01-22T03:59:49.156751448Z"
+    description: A Helm chart for Magout, a Kubernetes operator for Mastodon. This
+      chart includes a Deployment resource for the Magout operator, a MastodonServer
+      resource to deploy a Mastodon server, and other stuff necessary for the deploy.
+      Users must use this chart together with magout-cluster-wide chart.
+    digest: 38c6eca31fdd52639996a5f85ccda01a10fea828382e0d726e85782da41dcac0
+    name: magout
+    type: application
+    urls:
+    - https://github.com/ushitora-anqou/magout/releases/download/magout-chart-v0.1.32/magout-0.1.32.tgz
+    version: 0.1.32
+  - apiVersion: v2
     appVersion: 0.1.18
     created: "2025-12-07T12:33:01.852429122Z"
     description: A Helm chart for Magout, a Kubernetes operator for Mastodon. This
@@ -396,6 +409,18 @@ entries:
   magout-cluster-wide:
   - apiVersion: v2
     appVersion: 0.1.2
+    created: "2026-01-22T03:59:49.300352856Z"
+    description: A Helm chart for Magout, a Kubernetes operator for Mastodon. This
+      chart includes cluster-wide resources of Magout, such as CustomResourceDefinition.
+      Users must use this chart together with magout chart.
+    digest: 1c4c26284ffc0753ac2eaf3094692ceddf3d5669482b305d32558fffcccacb16
+    name: magout-cluster-wide
+    type: application
+    urls:
+    - https://github.com/ushitora-anqou/magout/releases/download/magout-cluster-wide-chart-v0.1.10/magout-cluster-wide-0.1.10.tgz
+    version: 0.1.10
+  - apiVersion: v2
+    appVersion: 0.1.2
     created: "2025-09-12T03:56:57.768760636Z"
     description: A Helm chart for Magout, a Kubernetes operator for Mastodon. This
       chart includes cluster-wide resources of Magout, such as CustomResourceDefinition.
@@ -519,4 +544,4 @@ entries:
     urls:
     - https://github.com/ushitora-anqou/magout/releases/download/magout-mastodon-server-chart-v0.1.0/magout-mastodon-server-0.1.0.tgz
     version: 0.1.0
-generated: "2025-12-07T12:33:01.852762968Z"
+generated: "2026-01-22T03:59:49.300627701Z"
