@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"time"
 
@@ -84,7 +85,9 @@ const (
 
 	jobPreMigration  jobType = "pre-migration"
 	jobPostMigration jobType = "post-migration"
+)
 
+const (
 	deployStatusUnknown deployStatusType = iota
 	deployStatusNotFound
 	deployStatusReady
@@ -664,16 +667,12 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 		if deploy.Annotations == nil {
 			deploy.Annotations = map[string]string{}
 		}
-		for k, v := range dep.deployAnnotations {
-			deploy.Annotations[k] = v
-		}
+		maps.Copy(deploy.Annotations, dep.deployAnnotations)
 
 		if deploy.Labels == nil {
 			deploy.Labels = map[string]string{}
 		}
-		for k, v := range dep.deployLabels {
-			deploy.Labels[k] = v
-		}
+		maps.Copy(deploy.Labels, dep.deployLabels)
 
 		selector := map[string]string{
 			"app.kubernetes.io/name":           dep.appName,
@@ -690,16 +689,12 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 		}
 		deploy.Spec.Template.Labels[labelMastodonServer] = server.GetName()
 		deploy.Spec.Template.Labels[labelDeployImage] = encodeDeploymentImage(dep.image)
-		for k, v := range selector {
-			deploy.Spec.Template.Labels[k] = v
-		}
+		maps.Copy(deploy.Spec.Template.Labels, selector)
 
 		if deploy.Spec.Template.Annotations == nil {
 			deploy.Spec.Template.Annotations = map[string]string{}
 		}
-		for k, v := range dep.podAnnotations {
-			deploy.Spec.Template.Annotations[k] = v
-		}
+		maps.Copy(deploy.Spec.Template.Annotations, dep.podAnnotations)
 
 		deploy.Spec.Replicas = &dep.replicas
 		deploy.Spec.Template.Spec.Containers = []corev1.Container{
