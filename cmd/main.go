@@ -128,6 +128,7 @@ func mainController() error {
 		Development: true,
 	}
 	opts.BindFlags(flag.CommandLine)
+	//nolint:revive
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))

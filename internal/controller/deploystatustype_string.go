@@ -8,10 +8,10 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[deployStatusUnknown-8]
-	_ = x[deployStatusNotFound-9]
-	_ = x[deployStatusReady-10]
-	_ = x[deployStatusNotReady-11]
+	_ = x[deployStatusUnknown-0]
+	_ = x[deployStatusNotFound-1]
+	_ = x[deployStatusReady-2]
+	_ = x[deployStatusNotReady-3]
 }
 
 const _deployStatusType_name = "deployStatusUnknowndeployStatusNotFounddeployStatusReadydeployStatusNotReady"
@@ -19,8 +19,8 @@ const _deployStatusType_name = "deployStatusUnknowndeployStatusNotFounddeploySta
 var _deployStatusType_index = [...]uint8{0, 19, 39, 56, 76}
 
 func (i deployStatusType) String() string {
-	idx := int(i) - 8
-	if i < 8 || idx >= len(_deployStatusType_index)-1 {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_deployStatusType_index)-1 {
 		return "deployStatusType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
 	return _deployStatusType_name[_deployStatusType_index[idx]:_deployStatusType_index[idx+1]]
