@@ -53,6 +53,8 @@ spec:
             - name: nginx-conf
               mountPath: /etc/nginx/conf.d
               readOnly: true
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
           securityContext:
             {{- toYaml .Values.gateway.deploy.securityContext | nindent 12 }}
       volumes:
@@ -64,6 +66,8 @@ spec:
             items:
               - key: nginx.conf
                 path: mastodon.conf
+        - name: nginx-cache
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
