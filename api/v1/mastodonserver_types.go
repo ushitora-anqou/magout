@@ -136,7 +136,3 @@ type MastodonServerList struct {
 
 	Items []MastodonServer `json:"items"`
 }
-
-func init() {
-	SchemeBuilder.Register(&MastodonServer{}, &MastodonServerList{})
-}
