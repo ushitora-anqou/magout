@@ -13,6 +13,7 @@ linters:
     - gochecknoinits
     - gocyclo
     - godox
+    - gomodguard
     - mnd
     - nlreturn
     - noinlineerr
