@@ -435,6 +435,13 @@ func (in *PeriodicRestartSpec) DeepCopyInto(out *PeriodicRestartSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.PodLabels != nil {
+		in, out := &in.PodLabels, &out.PodLabels
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	if in.PodSecurityContext != nil {
 		in, out := &in.PodSecurityContext, &out.PodSecurityContext
 		*out = new(corev1.PodSecurityContext)
