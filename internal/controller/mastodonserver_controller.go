@@ -487,6 +487,13 @@ func (r *MastodonServerReconciler) createOrUpdatePeriodicRestartCronJob(
 			cronJob.Spec.Suspend = &fals
 			templ.SecurityContext = spec.PodSecurityContext
 			templ.Containers[0].SecurityContext = spec.SecurityContext
+
+			if spec.PodLabels != nil {
+				if cronJob.Spec.JobTemplate.Spec.Template.Labels == nil {
+					cronJob.Spec.JobTemplate.Spec.Template.Labels = map[string]string{}
+				}
+				maps.Copy(cronJob.Spec.JobTemplate.Spec.Template.Labels, spec.PodLabels)
+			}
 		}
 
 		return ctrl.SetControllerReference(server, &cronJob, r.Scheme)
