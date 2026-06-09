@@ -1181,10 +1181,6 @@ spec:
                     properties:
                       enabled:
                         type: boolean
-                      podLabels:
-                        additionalProperties:
-                          type: string
-                        type: object
                       podSecurityContext:
                         description: |-
                           PodSecurityContext holds pod-level security attributes and common container settings.
@@ -5444,10 +5440,6 @@ spec:
                     properties:
                       enabled:
                         type: boolean
-                      podLabels:
-                        additionalProperties:
-                          type: string
-                        type: object
                       podSecurityContext:
                         description: |-
                           PodSecurityContext holds pod-level security attributes and common container settings.
@@ -9707,10 +9699,6 @@ spec:
                     properties:
                       enabled:
                         type: boolean
-                      podLabels:
-                        additionalProperties:
-                          type: string
-                        type: object
                       podSecurityContext:
                         description: |-
                           PodSecurityContext holds pod-level security attributes and common container settings.
