@@ -192,8 +192,8 @@ func checkDeployAnnotation(name, namespace, key, expectedValue string) error {
 
 func checkPodAge(mastodonServerName, namespace, component string, smallerThan time.Duration) error {
 	stdout, _, err := kubectl(nil, "get", "pod", "-n", namespace, "-o", "json", "-l",
-		fmt.Sprintf("app.kubernetes.io/component=%s,magout.anqou.net/mastodon-server=%s",
-			component, mastodonServerName))
+		fmt.Sprintf("app.kubernetes.io/component=%s,magout.anqou.net/mastodon-server=%s,"+
+			"app.kubernetes.io/name!=magout-restart", component, mastodonServerName))
 	if err != nil {
 		return err
 	}
