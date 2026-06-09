@@ -487,6 +487,14 @@ func (r *MastodonServerReconciler) createOrUpdatePeriodicRestartCronJob(
 			cronJob.Spec.Suspend = &fals
 			templ.SecurityContext = spec.PodSecurityContext
 			templ.Containers[0].SecurityContext = spec.SecurityContext
+
+			if cronJob.Spec.JobTemplate.Spec.Template.Labels == nil {
+				cronJob.Spec.JobTemplate.Spec.Template.Labels = map[string]string{}
+			}
+			maps.Copy(
+				cronJob.Spec.JobTemplate.Spec.Template.Labels,
+				getLabels("magout-restart", component, server.GetName()),
+			)
 		}
 
 		return ctrl.SetControllerReference(server, &cronJob, r.Scheme)
@@ -652,6 +660,15 @@ func (r *MastodonServerReconciler) createOrUpdateWebDeployment(
 	)
 }
 
+func getLabels(appName string, component componentType, serverName string) map[string]string {
+	return map[string]string{
+		"app.kubernetes.io/name":           appName,
+		"app.kubernetes.io/component":      string(component),
+		"app.kubernetes.io/part-of":        "mastodon",
+		"magout.anqou.net/mastodon-server": serverName,
+	}
+}
+
 func (r *MastodonServerReconciler) createOrUpdateDeployment(
 	ctx context.Context,
 	server *magoutv1.MastodonServer,
@@ -674,12 +691,7 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 		}
 		maps.Copy(deploy.Labels, dep.deployLabels)
 
-		selector := map[string]string{
-			"app.kubernetes.io/name":           dep.appName,
-			"app.kubernetes.io/component":      string(dep.component),
-			"app.kubernetes.io/part-of":        "mastodon",
-			"magout.anqou.net/mastodon-server": server.GetName(),
-		}
+		selector := getLabels(dep.appName, dep.component, server.GetName())
 		deploy.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: selector,
 		}
@@ -687,7 +699,6 @@ func (r *MastodonServerReconciler) createOrUpdateDeployment(
 		if deploy.Spec.Template.Labels == nil {
 			deploy.Spec.Template.Labels = map[string]string{}
 		}
-		deploy.Spec.Template.Labels[labelMastodonServer] = server.GetName()
 		deploy.Spec.Template.Labels[labelDeployImage] = encodeDeploymentImage(dep.image)
 		maps.Copy(deploy.Spec.Template.Labels, selector)
 
