@@ -22,7 +22,6 @@ mastodonServer:
       enabled: false
       schedule: "0 0 * * *"
       # timeZone: UTC
-      podLabels: {}
       podSecurityContext:
         runAsNonRoot: true
         runAsUser: 991
@@ -58,7 +57,6 @@ mastodonServer:
       enabled: false
       schedule: "0 0 * * *"
       # timeZone: UTC
-      podLabels: {}
       podSecurityContext:
         runAsNonRoot: true
         runAsUser: 991
@@ -94,7 +92,6 @@ mastodonServer:
       enabled: false
       schedule: "0 0 * * *"
       # timeZone: UTC
-      podLabels: {}
       podSecurityContext:
         runAsNonRoot: true
         runAsUser: 991

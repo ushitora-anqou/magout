@@ -12,7 +12,6 @@ type PeriodicRestartSpec struct {
 	Enabled            bool                       `json:"enabled,omitempty"`
 	Schedule           string                     `json:"schedule,omitempty"`
 	TimeZone           *string                    `json:"timeZone,omitempty"`
-	PodLabels          map[string]string          `json:"podLabels,omitempty"`
 	PodSecurityContext *corev1.PodSecurityContext `json:"podSecurityContext,omitempty"`
 	SecurityContext    *corev1.SecurityContext    `json:"securityContext,omitempty"`
 }
