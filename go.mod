@@ -3,9 +3,9 @@ module github.com/ushitora-anqou/magout
 go 1.26.0
 
 require (
-	github.com/onsi/ginkgo/v2 v2.31.0
-	github.com/onsi/gomega v1.42.0
-	golang.org/x/tools v0.46.0
+	github.com/onsi/ginkgo/v2 v2.32.0
+	github.com/onsi/gomega v1.42.1
+	golang.org/x/tools v0.47.0
 	k8s.io/api v0.36.2
 	k8s.io/apimachinery v0.36.2
 	k8s.io/client-go v0.36.2
