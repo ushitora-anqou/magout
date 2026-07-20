@@ -1,3 +1,10 @@
+# Multi-arch (amd64 + arm64) build via the push-by-digest + merge pattern:
+# each platform builds independently and pushes an untagged single-arch image
+# (indexed by digest only); the merge job then assembles the final tagged
+# multi-arch manifest atomically. A partial (single-arch) tag can never exist
+# mid-build.
+#
+# Reference: https://docs.docker.com/build/ci/github-actions/multi-platform/#distribute-build-across-multiple-runners
 # https://docs.github.com/en/actions/publishing-packages/publishing-docker-images
 name: Publish Docker image to ghcr.io
 
@@ -13,13 +20,28 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push-image:
-    runs-on: ubuntu-latest
-
+  # ── Per-platform build (push-by-digest, no tag yet) ───────────────
+  # One job per platform. Each job pushes a single-arch image indexed
+  # by digest only. The merge job below creates the final tagged
+  # multi-arch manifest atomically.
+  build:
+    name: build - ${{ matrix.platform }}
+    # Run ARM64 builds natively on GitHub's free ARM64 runners. QEMU
+    # emulation would also work but is ~10x slower for a Go build.
+    # amd64 stays on the default x64 runners.
+    runs-on: ${{ contains(matrix.platform, 'arm64') && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     permissions:
       contents: read
       packages: write
-
+    strategy:
+      # Don't cancel the arm64 build just because amd64 failed (or vice
+      # versa); we want both logs for debugging. The merge job still
+      # won't run unless ALL builds succeed (default needs behavior).
+      fail-fast: false
+      matrix:
+        # magout ships a single image, so the matrix is platform-only
+        # (no `image` dimension, unlike the Mastodon reference commit).
+        platform: [linux/amd64, linux/arm64]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -33,16 +55,163 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          # provenance: false keeps the manifest list shape simple
+          # (no attestation manifests). magout doesn't use SBOM/provenance
+          # verification today; revisit when it does.
+          provenance: false
+          # push-by-digest: no tag here. The merge job creates the tag
+          # atomically via `docker buildx imagetools create`, so a
+          # partial (single-arch) tag can never exist mid-build.
+          # `push=true` is MANDATORY with push-by-digest; without it
+          # buildx exports locally and never pushes.
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+
+      - name: Prepare digest artifact
+        id: prep
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          PLATFORM: ${{ matrix.platform }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$DIGEST" ] || [ "$DIGEST" = "null" ]; then
+            echo "::error::No digest produced for ${{ matrix.platform }}"
+            exit 1
+          fi
+          # upload-artifact forbids '/' in artifact names: linux/amd64 -> linux-amd64
+          safe="${PLATFORM//\//-}"
+          mkdir -p /tmp/digest
+          printf '%s\n' "$DIGEST" > "/tmp/digest/digest-${safe}.txt"
+          echo "artifact_name=digest-${safe}" >> "$GITHUB_OUTPUT"
+          echo "Pushed ${{ matrix.platform }}: $DIGEST" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.prep.outputs.artifact_name }}
+          path: /tmp/digest
+          # 1 day is plenty: the merge job consumes them within the
+          # same workflow run.
+          retention-days: 1
+          if-no-files-found: error
+
+  # ── Merge: create the final multi-arch tag atomically ─────────────
+  # Downloads per-platform digests and invokes `docker buildx imagetools
+  # create` to assemble the manifest list with ALL metadata-action tags
+  # (master, semver, latest, sha-xxxx, ...) attached in a single call.
+  #
+  # No buildx version pin: docker/buildx#3708 (imagetools create breakage
+  # on GHCR since v0.31.1) only triggers when a SINGLE workflow reuses
+  # metadata tags across multiple registries / multiple create calls.
+  # magout publishes to one registry (GHCR) with one create call, so the
+  # bug's preconditions never hold. Pinning would only block dependabot
+  # major bumps without buying real safety here.
+  merge:
+    name: merge - multi-arch
+    needs: [build]
+    # Default `needs` semantics already gate this on every build job
+    # succeeding (matrix included), so no `if:` is needed. Adding
+    # `if: ${{ !cancelled() }}` (as in the Mastodon reference) would
+    # let the merge run with a missing platform and just fail at the
+    # digest step -- pointless for a single-image repo.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      # Re-run metadata-action here: the build job never tags
+      # (push-by-digest), so tag computation belongs in the merge job.
+      # Default tag rules apply (type=ref,event=branch; type=ref,event=tag;
+      # latest=auto on tag events).
+      - name: Extract metadata (tags) for Docker
         id: meta
         uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v7
+      - name: Download per-platform digests
+        uses: actions/download-artifact@v4
         with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          # magout ships a single image, so the prefix-collision concern
+          # from the Mastodon reference (where `digest-mastodon-*` would
+          # also match `digest-mastodon-streaming-*`) does not apply.
+          pattern: digest-linux-*
+          path: digests
+          merge-multiple: true
+
+      - name: Merge multi-arch manifest
+        env:
+          REPO: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # metadata-action's outputs.tags is newline-separated
+          # (e.g. ghcr.io/.../magout:v1.2.3\nghcr.io/.../magout:latest).
+          TAGS: ${{ steps.meta.outputs.tags }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Collect per-platform source references (REPO@sha256:...).
+          mapfile -t files < <(find digests -type f -print | sort)
+          if [ "${#files[@]}" -lt 1 ]; then
+            echo "::error::No digest files found"
+            exit 1
+          fi
+          sources=()
+          for f in "${files[@]}"; do
+            d="$(tr -d '[:space:]' < "$f")"
+            case "$d" in
+              sha256:*) : ;;
+              *) echo "::error::Bad digest in $f: $d"; exit 1 ;;
+            esac
+            sources+=("${REPO}@${d}")
+          done
+
+          # Convert each newline-separated tag into `-t <tag>` so ALL
+          # tags (master, latest, semver, sha-xxxx, ...) are attached
+          # to the SAME multi-arch manifest in a single imagetools call.
+          # Doing it in one call is what keeps us clear of #3708.
+          tag_args=()
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            tag_args+=("-t" "$line")
+          done <<< "${TAGS}"
+          if [ "${#tag_args[@]}" -eq 0 ]; then
+            echo "::error::No tags resolved by metadata-action"
+            exit 1
+          fi
+
+          echo "Merging ${#files[@]} arch(s) with ${#tag_args[@]} tag arg(s)" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+          printf '  %s\n' "${tag_args[@]}" | tee -a "$GITHUB_STEP_SUMMARY"
+
+          docker buildx imagetools create "${tag_args[@]}" "${sources[@]}"
+
+      - name: Verify merged manifest
+        env:
+          # Inspect the first resolved tag (always present regardless of
+          # event). `latest` is only attached on tag pushes, so we can't
+          # hard-code it here.
+          FIRST_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker buildx imagetools inspect "${FIRST_TAG}" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
