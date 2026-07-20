@@ -46,6 +46,11 @@ mastodonServer:
           - ALL
     volumeMounts: []
     volumes: []
+    nodeSelector: {}
+    affinity: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    podAnnotations: {}
   web:
     replicas: 1
     labels: {}
@@ -81,6 +86,11 @@ mastodonServer:
           - ALL
     volumeMounts: []
     volumes: []
+    nodeSelector: {}
+    affinity: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    podAnnotations: {}
   streaming:
     replicas: 1
     labels: {}
@@ -116,6 +126,11 @@ mastodonServer:
           - ALL
     volumeMounts: []
     volumes: []
+    nodeSelector: {}
+    affinity: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    podAnnotations: {}
 
 serviceAccount:
   # Specifies whether a service account should be created
