@@ -39,8 +39,6 @@ jobs:
       # won't run unless ALL builds succeed (default needs behavior).
       fail-fast: false
       matrix:
-        # magout ships a single image, so the matrix is platform-only
-        # (no `image` dimension, unlike the Mastodon reference commit).
         platform: [linux/amd64, linux/arm64]
     steps:
       - name: Checkout repository
@@ -95,7 +93,7 @@ jobs:
           echo "Pushed ${{ matrix.platform }}: $DIGEST" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Upload digest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.prep.outputs.artifact_name }}
           path: /tmp/digest
@@ -108,21 +106,9 @@ jobs:
   # Downloads per-platform digests and invokes `docker buildx imagetools
   # create` to assemble the manifest list with ALL metadata-action tags
   # (master, semver, latest, sha-xxxx, ...) attached in a single call.
-  #
-  # No buildx version pin: docker/buildx#3708 (imagetools create breakage
-  # on GHCR since v0.31.1) only triggers when a SINGLE workflow reuses
-  # metadata tags across multiple registries / multiple create calls.
-  # magout publishes to one registry (GHCR) with one create call, so the
-  # bug's preconditions never hold. Pinning would only block dependabot
-  # major bumps without buying real safety here.
   merge:
     name: merge - multi-arch
     needs: [build]
-    # Default `needs` semantics already gate this on every build job
-    # succeeding (matrix included), so no `if:` is needed. Adding
-    # `if: ${{ !cancelled() }}` (as in the Mastodon reference) would
-    # let the merge run with a missing platform and just fail at the
-    # digest step -- pointless for a single-image repo.
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -149,11 +135,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Download per-platform digests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
-          # magout ships a single image, so the prefix-collision concern
-          # from the Mastodon reference (where `digest-mastodon-*` would
-          # also match `digest-mastodon-streaming-*`) does not apply.
           pattern: digest-linux-*
           path: digests
           merge-multiple: true
