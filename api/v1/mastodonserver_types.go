@@ -8,26 +8,17 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-type PeriodicRestartSpec struct {
-	Enabled            bool                       `json:"enabled,omitempty"`
-	Schedule           string                     `json:"schedule,omitempty"`
-	TimeZone           *string                    `json:"timeZone,omitempty"`
-	PodSecurityContext *corev1.PodSecurityContext `json:"podSecurityContext,omitempty"`
-	SecurityContext    *corev1.SecurityContext    `json:"securityContext,omitempty"`
-}
-
 type MastodonServerSidekiqSpec struct {
-	Image           string                      `json:"image"`
-	Env             []corev1.EnvVar             `json:"env,omitempty"`
-	EnvFrom         []corev1.EnvFromSource      `json:"envFrom,omitempty"`
-	Labels          map[string]string           `json:"labels,omitempty"`
-	Annotations     map[string]string           `json:"annotations,omitempty"`
-	PodAnnotations  map[string]string           `json:"podAnnotations,omitempty"`
-	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
-	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
-	NodeSelector    map[string]string           `json:"nodeSelector,omitempty"`
-	Affinity        corev1.Affinity             `json:"affinity,omitempty"`
-	Tolerations     []corev1.Toleration         `json:"tolerations,omitempty"`
+	Image          string                      `json:"image"`
+	Env            []corev1.EnvVar             `json:"env,omitempty"`
+	EnvFrom        []corev1.EnvFromSource      `json:"envFrom,omitempty"`
+	Labels         map[string]string           `json:"labels,omitempty"`
+	Annotations    map[string]string           `json:"annotations,omitempty"`
+	PodAnnotations map[string]string           `json:"podAnnotations,omitempty"`
+	Resources      corev1.ResourceRequirements `json:"resources,omitempty"`
+	NodeSelector   map[string]string           `json:"nodeSelector,omitempty"`
+	Affinity       corev1.Affinity             `json:"affinity,omitempty"`
+	Tolerations    []corev1.Toleration         `json:"tolerations,omitempty"`
 
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 
@@ -42,17 +33,16 @@ type MastodonServerSidekiqSpec struct {
 }
 
 type MastodonServerStreamingSpec struct {
-	Image           string                      `json:"image"`
-	Env             []corev1.EnvVar             `json:"env,omitempty"`
-	EnvFrom         []corev1.EnvFromSource      `json:"envFrom,omitempty"`
-	Labels          map[string]string           `json:"labels,omitempty"`
-	Annotations     map[string]string           `json:"annotations,omitempty"`
-	PodAnnotations  map[string]string           `json:"podAnnotations,omitempty"`
-	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
-	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
-	NodeSelector    map[string]string           `json:"nodeSelector,omitempty"`
-	Affinity        corev1.Affinity             `json:"affinity,omitempty"`
-	Tolerations     []corev1.Toleration         `json:"tolerations,omitempty"`
+	Image          string                      `json:"image"`
+	Env            []corev1.EnvVar             `json:"env,omitempty"`
+	EnvFrom        []corev1.EnvFromSource      `json:"envFrom,omitempty"`
+	Labels         map[string]string           `json:"labels,omitempty"`
+	Annotations    map[string]string           `json:"annotations,omitempty"`
+	PodAnnotations map[string]string           `json:"podAnnotations,omitempty"`
+	Resources      corev1.ResourceRequirements `json:"resources,omitempty"`
+	NodeSelector   map[string]string           `json:"nodeSelector,omitempty"`
+	Affinity       corev1.Affinity             `json:"affinity,omitempty"`
+	Tolerations    []corev1.Toleration         `json:"tolerations,omitempty"`
 
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 
@@ -67,17 +57,16 @@ type MastodonServerStreamingSpec struct {
 }
 
 type MastodonServerWebSpec struct {
-	Image           string                      `json:"image"`
-	Env             []corev1.EnvVar             `json:"env,omitempty"`
-	EnvFrom         []corev1.EnvFromSource      `json:"envFrom,omitempty"`
-	Labels          map[string]string           `json:"labels,omitempty"`
-	Annotations     map[string]string           `json:"annotations,omitempty"`
-	PodAnnotations  map[string]string           `json:"podAnnotations,omitempty"`
-	PeriodicRestart *PeriodicRestartSpec        `json:"periodicRestart,omitempty"`
-	Resources       corev1.ResourceRequirements `json:"resources,omitempty"`
-	NodeSelector    map[string]string           `json:"nodeSelector,omitempty"`
-	Affinity        corev1.Affinity             `json:"affinity,omitempty"`
-	Tolerations     []corev1.Toleration         `json:"tolerations,omitempty"`
+	Image          string                      `json:"image"`
+	Env            []corev1.EnvVar             `json:"env,omitempty"`
+	EnvFrom        []corev1.EnvFromSource      `json:"envFrom,omitempty"`
+	Labels         map[string]string           `json:"labels,omitempty"`
+	Annotations    map[string]string           `json:"annotations,omitempty"`
+	PodAnnotations map[string]string           `json:"podAnnotations,omitempty"`
+	Resources      corev1.ResourceRequirements `json:"resources,omitempty"`
+	NodeSelector   map[string]string           `json:"nodeSelector,omitempty"`
+	Affinity       corev1.Affinity             `json:"affinity,omitempty"`
+	Tolerations    []corev1.Toleration         `json:"tolerations,omitempty"`
 
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 

@@ -36,7 +36,6 @@ spec:
           image: "{{ .Values.operator.image.repository }}:{{ .Values.operator.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
           args:
-            - -restart-service-account-name={{ include "magout.serviceAccountName" . }}
             - -namespace={{ .Release.Namespace }}
           ports:
             {{- toYaml .Values.operator.ports | nindent 12 }}
@@ -50,15 +49,6 @@ spec:
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          env:
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
       {{- with .Values.operator.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}

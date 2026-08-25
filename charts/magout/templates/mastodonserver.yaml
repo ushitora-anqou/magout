@@ -29,12 +29,6 @@ spec:
     resources:
       {{- toYaml . | nindent 6 }}
     {{- end }}
-    {{- with .Values.mastodonServer.sidekiq.periodicRestart }}
-    {{- if .enabled }}
-    periodicRestart:
-      {{- toYaml . | nindent 6 }}
-    {{- end }}
-    {{- end }}
     {{- with .Values.mastodonServer.sidekiq.podSecurityContext }}
     podSecurityContext:
       {{- toYaml . | nindent 6 }}
@@ -96,12 +90,6 @@ spec:
     resources:
       {{- toYaml . | nindent 6 }}
     {{- end }}
-    {{- with .Values.mastodonServer.web.periodicRestart }}
-    {{- if .enabled }}
-    periodicRestart:
-      {{- toYaml . | nindent 6 }}
-    {{- end }}
-    {{- end }}
     {{- with .Values.mastodonServer.web.podSecurityContext }}
     podSecurityContext:
       {{- toYaml . | nindent 6 }}
@@ -162,12 +150,6 @@ spec:
     {{- with .Values.mastodonServer.streaming.resources }}
     resources:
       {{- toYaml . | nindent 6 }}
-    {{- end }}
-    {{- with .Values.mastodonServer.streaming.periodicRestart }}
-    {{- if .enabled }}
-    periodicRestart:
-      {{- toYaml . | nindent 6 }}
-    {{- end }}
     {{- end }}
     {{- with .Values.mastodonServer.streaming.podSecurityContext }}
     podSecurityContext:
