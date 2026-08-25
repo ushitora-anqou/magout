@@ -296,3 +296,39 @@ periodicMaintenance:
     enabled: false
   removePreviewCards: # tootctl preview_cards remove
     enabled: false
+
+# Periodic restart of Mastodon workloads via CronJobs created by this chart.
+# This is a replacement for the periodicRestart field of the MastodonServer
+# resource (which is created by the Magout operator). During the migration
+# period, both mechanisms are supported, but enabling both for the same
+# component makes chart rendering fail.
+periodicRestart:
+  # kubectl image used by the restart CronJobs. The entrypoint of this image
+  # is /bin/kubectl, so the container args below are passed to kubectl.
+  image: "registry.k8s.io/kubectl:v1.36.4"
+  # timeZone: UTC
+  successfulJobsHistoryLimit: 1
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 65534
+    runAsGroup: 65534
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  web:
+    enabled: false
+    schedule: "0 0 * * *"
+  sidekiq:
+    enabled: false
+    schedule: "0 0 * * *"
+  streaming:
+    enabled: false
+    schedule: "0 0 * * *"

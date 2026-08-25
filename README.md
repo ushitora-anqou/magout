@@ -62,7 +62,7 @@ Magout will take care of the necessary DB migrations and roll out the new deploy
 
 ## Features & Tips
 
-- You can restart web, streaming, and/or sidekiq pods on a regular schedule by using the `periodicRestart` field. [See this test manifest](https://github.com/ushitora-anqou/magout/blob/fa34514da5ee78d01562f153a7f54a2883d59128/test/e2e/testdata/values-v4.3.0b1-restart.yaml#L40-L43) for details.
+- You can restart web, streaming, and/or sidekiq pods on a regular schedule by setting `.periodicRestart.<component>.enabled` to `true` in your values.yaml. This creates CronJobs which run `kubectl rollout restart` with a dedicated ServiceAccount (only `get` and `patch` on deployments) using the `registry.k8s.io/kubectl` image (configurable via `.periodicRestart.image`).
 - You can add your favourite annotations to the pods. [See this test manifest](https://github.com/ushitora-anqou/magout/blob/master/test/e2e/testdata/values-v4.3.0b1-restart.yaml#L31-L32). This feature is especially useful in combination with [stakater/Reloader](https://github.com/stakater/Reloader) to reload configmaps and secrets specified in the MastodonServer resources.
 
 ## License
