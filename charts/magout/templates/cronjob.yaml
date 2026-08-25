@@ -62,6 +62,22 @@ spec:
           restartPolicy: Never
           securityContext:
             {{- toYaml .Values.periodicMaintenance.podSecurityContext | nindent 12 }}
+          {{- with .Values.periodicMaintenance.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.periodicMaintenance.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.periodicMaintenance.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.periodicMaintenance.topologySpreadConstraints }}
+          topologySpreadConstraints:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
   schedule: {{ .Values.periodicMaintenance.schedule }}
   timeZone: {{ .Values.periodicMaintenance.timeZone }}
   successfulJobsHistoryLimit: {{ .Values.periodicMaintenance.successfulJobsHistoryLimit }}

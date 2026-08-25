@@ -276,6 +276,10 @@ periodicMaintenance:
     capabilities:
       drop:
         - ALL
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
   removeStatuses: # tootctl statuses remove
     enabled: false
   pruneAccounts: # tootctl accounts prune
