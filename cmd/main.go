@@ -1,27 +1,21 @@
 package main
 
 import (
-	"context"
 	"crypto/tls"
 	"errors"
 	"flag"
-	"fmt"
 	"log/slog"
 	"os"
-	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/filters"
@@ -38,67 +32,11 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
-const (
-	annotRestartTime = "magout.anqou.net/restart-time"
-)
-
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(magoutv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
-}
-
-func mainRestart() error {
-	fs := flag.NewFlagSet("restart", flag.ExitOnError)
-	var name, namespace, target string
-	fs.StringVar(&name, "name", "", "")
-	fs.StringVar(&namespace, "namespace", "", "")
-	fs.StringVar(&target, "target", "", "")
-	if err := fs.Parse(os.Args[2:]); err != nil {
-		return err
-	}
-
-	cli, err := client.New(config.GetConfigOrDie(), client.Options{
-		Scheme: scheme,
-	})
-	if err != nil {
-		return fmt.Errorf("couldn't create a new client: %w", err)
-	}
-
-	ctx := context.Background()
-
-	var mastodonServer magoutv1.MastodonServer
-	if err := cli.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, &mastodonServer); err != nil {
-		return fmt.Errorf("couldn't get MastodonServer: %w", err)
-	}
-
-	now := time.Now().Format(time.RFC3339Nano)
-	switch target {
-	case "web":
-		if mastodonServer.Spec.Web.PodAnnotations == nil {
-			mastodonServer.Spec.Web.PodAnnotations = map[string]string{}
-		}
-		mastodonServer.Spec.Web.PodAnnotations[annotRestartTime] = now
-	case "sidekiq":
-		if mastodonServer.Spec.Sidekiq.PodAnnotations == nil {
-			mastodonServer.Spec.Sidekiq.PodAnnotations = map[string]string{}
-		}
-		mastodonServer.Spec.Sidekiq.PodAnnotations[annotRestartTime] = now
-	case "streaming":
-		if mastodonServer.Spec.Streaming.PodAnnotations == nil {
-			mastodonServer.Spec.Streaming.PodAnnotations = map[string]string{}
-		}
-		mastodonServer.Spec.Streaming.PodAnnotations[annotRestartTime] = now
-	default:
-		return fmt.Errorf("invalid target: %s", target)
-	}
-
-	if err := cli.Update(ctx, &mastodonServer); err != nil {
-		return fmt.Errorf("couldn't update MastodonServer: %w", err)
-	}
-
-	return nil
 }
 
 func mainController() error {
@@ -108,10 +46,7 @@ func mainController() error {
 	var secureMetrics bool
 	var enableHTTP2 bool
 	var tlsOpts []func(*tls.Config)
-	var restartServiceAccountName string
 	var namespace string
-	flag.StringVar(&restartServiceAccountName, "restart-service-account-name", "",
-		"ServiceAccount name that should be used for periodic restart CronJobs")
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -133,9 +68,6 @@ func mainController() error {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
-	if restartServiceAccountName == "" {
-		return errors.New("specify restart-service-account-name")
-	}
 	if namespace == "" {
 		return errors.New("specify namespace")
 	}
@@ -216,7 +148,6 @@ func mainController() error {
 	reconciler := controller.NewMastodonServerReconciler(
 		mgr.GetClient(),
 		mgr.GetScheme(),
-		restartServiceAccountName,
 	)
 	if err := reconciler.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "MastodonServer")
@@ -243,15 +174,8 @@ func mainController() error {
 }
 
 func main() {
-	if len(os.Args) >= 2 && os.Args[1] == "restart" {
-		if err := mainRestart(); err != nil {
-			slog.Error("subcommand restart failed", "error", err)
-			os.Exit(1)
-		}
-	} else {
-		if err := mainController(); err != nil {
-			slog.Error("subcommand controller failed", "error", err)
-			os.Exit(1)
-		}
+	if err := mainController(); err != nil {
+		slog.Error("subcommand controller failed", "error", err)
+		os.Exit(1)
 	}
 }

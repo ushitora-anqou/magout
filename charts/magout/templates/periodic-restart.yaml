@@ -1,5 +1,4 @@
 {{- $pr := .Values.periodicRestart | default (dict) }}
-{{- $ms := .Values.mastodonServer | default (dict) }}
 {{- $saName := printf "%s-periodic-restart" (include "magout.fullname" .) }}
 {{- $anyEnabled := false }}
 {{- range $component := list "web" "sidekiq" "streaming" }}
@@ -52,9 +51,6 @@ subjects:
 {{- end }}
 {{- range $component := list "web" "sidekiq" "streaming" }}
 {{- $c := dig $component (dict) $pr | default (dict) }}
-{{- if and $c.enabled (dig $component "periodicRestart" "enabled" false $ms) }}
-{{- fail (printf "periodicRestart for %s is enabled both via .periodicRestart.%s.enabled and .mastodonServer.%s.periodicRestart.enabled; enable only one of them" $component $component $component) }}
-{{- end }}
 {{- if $c.enabled }}
 ---
 apiVersion: batch/v1

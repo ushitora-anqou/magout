@@ -18,21 +18,6 @@ mastodonServer:
     env: []
     envFrom: [] # CHANGE HERE
     resources: {}
-    periodicRestart:
-      enabled: false
-      schedule: "0 0 * * *"
-      # timeZone: UTC
-      podSecurityContext:
-        runAsNonRoot: true
-        runAsUser: 991
-        runAsGroup: 991
-        seccompProfile:
-          type: RuntimeDefault
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop:
-            - ALL
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 991
@@ -58,21 +43,6 @@ mastodonServer:
     env: []
     envFrom: [] # CHANGE HERE
     resources: {}
-    periodicRestart:
-      enabled: false
-      schedule: "0 0 * * *"
-      # timeZone: UTC
-      podSecurityContext:
-        runAsNonRoot: true
-        runAsUser: 991
-        runAsGroup: 991
-        seccompProfile:
-          type: RuntimeDefault
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop:
-            - ALL
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 991
@@ -98,21 +68,6 @@ mastodonServer:
     env: []
     envFrom: [] # CHANGE HERE
     resources: {}
-    periodicRestart:
-      enabled: false
-      schedule: "0 0 * * *"
-      # timeZone: UTC
-      podSecurityContext:
-        runAsNonRoot: true
-        runAsUser: 991
-        runAsGroup: 991
-        seccompProfile:
-          type: RuntimeDefault
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop:
-            - ALL
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 991
@@ -298,10 +253,9 @@ periodicMaintenance:
     enabled: false
 
 # Periodic restart of Mastodon workloads via CronJobs created by this chart.
-# This is a replacement for the periodicRestart field of the MastodonServer
-# resource (which is created by the Magout operator). During the migration
-# period, both mechanisms are supported, but enabling both for the same
-# component makes chart rendering fail.
+# The periodicRestart field of the MastodonServer resource (previously set
+# via .mastodonServer.<component>.periodicRestart) has been removed; use
+# .periodicRestart.<component>.enabled instead.
 periodicRestart:
   # kubectl image used by the restart CronJobs. The entrypoint of this image
   # is /bin/kubectl, so the container args below are passed to kubectl.

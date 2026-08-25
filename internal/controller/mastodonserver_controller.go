@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"os"
 	"time"
 
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -161,20 +160,17 @@ type k8sStatus struct {
 
 // MastodonServerReconciler reconciles a MastodonServer object.
 type MastodonServerReconciler struct {
-	Client                    client.Client
-	Scheme                    *runtime.Scheme
-	restartServiceAccountName string
+	Client client.Client
+	Scheme *runtime.Scheme
 }
 
 func NewMastodonServerReconciler(
 	cli client.Client,
 	scheme *runtime.Scheme,
-	restartServiceAccountName string,
 ) *MastodonServerReconciler {
 	return &MastodonServerReconciler{
-		Client:                    cli,
-		Scheme:                    scheme,
-		restartServiceAccountName: restartServiceAccountName,
+		Client: cli,
+		Scheme: scheme,
 	}
 }
 
@@ -209,6 +205,10 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		)
 		return ctrl.Result{}, nil
 	} else if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if err := r.cleanupPeriodicRestartCronJobs(ctx, &server); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -274,9 +274,6 @@ func (r *MastodonServerReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	case shouldCreateOrUpdateDeploysWithSpec:
 		if err := r.createOrUpdateDeployments(ctx, &server, k8sStatus.specImageMap); err != nil {
-			return ctrl.Result{}, err
-		}
-		if err := r.createOrUpdateCronJobs(ctx, &server); err != nil {
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
@@ -401,107 +398,48 @@ func (r *MastodonServerReconciler) createMigrationJob(
 	return r.Client.Create(ctx, &job)
 }
 
-func (r *MastodonServerReconciler) createOrUpdateCronJobs(
+// cleanupPeriodicRestartCronJobs deletes CronJobs that were created for the
+// removed .spec.*.periodicRestart field of the MastodonServer resource.
+func (r *MastodonServerReconciler) cleanupPeriodicRestartCronJobs(
 	ctx context.Context,
 	server *magoutv1.MastodonServer,
 ) error {
-	if err := r.createOrUpdatePeriodicRestartCronJob(
-		ctx, server, componentWeb, server.Spec.Web.PeriodicRestart,
-	); err != nil {
-		return err
-	}
-	if err := r.createOrUpdatePeriodicRestartCronJob(
-		ctx, server, componentSidekiq, server.Spec.Sidekiq.PeriodicRestart,
-	); err != nil {
-		return err
-	}
-	if err := r.createOrUpdatePeriodicRestartCronJob(
-		ctx, server, componentStreaming, server.Spec.Streaming.PeriodicRestart,
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *MastodonServerReconciler) getRunningImage(ctx context.Context) (string, error) {
-	podName := os.Getenv("POD_NAME")
-	podNamespace := os.Getenv("POD_NAMESPACE")
-	if podName == "" || podNamespace == "" {
-		return "", errors.New("POD_NAME and POD_NAMESPACE should be set")
-	}
-
-	var pod corev1.Pod
-	if err := r.Client.Get(
-		ctx,
-		types.NamespacedName{Name: podName, Namespace: podNamespace},
-		&pod,
-	); err != nil {
-		return "", fmt.Errorf("failed to get running Pod: %w", err)
-	}
-	return pod.Spec.Containers[0].Image, nil
-}
-
-func (r *MastodonServerReconciler) createOrUpdatePeriodicRestartCronJob(
-	ctx context.Context,
-	server *magoutv1.MastodonServer,
-	component componentType,
-	spec *magoutv1.PeriodicRestartSpec,
-) error {
-	runningImage, err := r.getRunningImage(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get running image: %w", err)
-	}
-
-	var cronJob batchv1.CronJob
-	cronJob.SetName(buildPeriodicRestartCronJobName(component, server.GetName()))
-	cronJob.SetNamespace(server.GetNamespace())
-
-	if _, err := ctrl.CreateOrUpdate(ctx, r.Client, &cronJob, func() error {
-		cronJob.Spec.ConcurrencyPolicy = batchv1.ForbidConcurrent
-
-		templ := &cronJob.Spec.JobTemplate.Spec.Template.Spec
-		templ.ServiceAccountName = r.restartServiceAccountName
-		templ.RestartPolicy = corev1.RestartPolicyOnFailure
-		templ.Containers = []corev1.Container{
-			{
-				Name:            "restart",
-				Image:           runningImage,
-				ImagePullPolicy: corev1.PullIfNotPresent,
-				Args: []string{
-					"restart",
-					"--name", server.GetName(),
-					"--namespace", server.GetNamespace(),
-					"--target", string(component),
-				},
-			},
+	logger := log.FromContext(ctx)
+	for _, component := range []componentType{componentWeb, componentSidekiq, componentStreaming} {
+		name := buildPeriodicRestartCronJobName(component, server.GetName())
+		// CronJobs with such long names can never have been created.
+		if len(name) > 253 {
+			continue
 		}
 
-		if spec == nil || !spec.Enabled {
-			cronJob.Spec.Schedule = "0 0 * * *"
-			tru := true
-			cronJob.Spec.Suspend = &tru
-		} else {
-			cronJob.Spec.Schedule = spec.Schedule
-			cronJob.Spec.TimeZone = spec.TimeZone
-			fals := false
-			cronJob.Spec.Suspend = &fals
-			templ.SecurityContext = spec.PodSecurityContext
-			templ.Containers[0].SecurityContext = spec.SecurityContext
-
-			if cronJob.Spec.JobTemplate.Spec.Template.Labels == nil {
-				cronJob.Spec.JobTemplate.Spec.Template.Labels = map[string]string{}
+		var cronJob batchv1.CronJob
+		if err := r.Client.Get(
+			ctx,
+			types.NamespacedName{Name: name, Namespace: server.GetNamespace()},
+			&cronJob,
+		); err != nil {
+			if k8serrors.IsNotFound(err) {
+				continue
 			}
-			maps.Copy(
-				cronJob.Spec.JobTemplate.Spec.Template.Labels,
-				getLabels("magout-restart", component, server.GetName()),
-			)
+			return err
 		}
 
-		return ctrl.SetControllerReference(server, &cronJob, r.Scheme)
-	}); err != nil {
-		return err
-	}
+		if !metav1.IsControlledBy(&cronJob, server) {
+			continue
+		}
 
+		propagationPolicy := metav1.DeletePropagationBackground
+		if err := r.Client.Delete(ctx, &cronJob, &client.DeleteOptions{
+			PropagationPolicy: &propagationPolicy,
+		}); err != nil {
+			return err
+		}
+		logger.Info(
+			"deleted leftover periodic restart CronJob",
+			"name", name,
+			"namespace", server.GetNamespace(),
+		)
+	}
 	return nil
 }
 
