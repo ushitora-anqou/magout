@@ -1,0 +1,123 @@
+{{- $pr := .Values.periodicRestart | default (dict) }}
+{{- $ms := .Values.mastodonServer | default (dict) }}
+{{- $saName := printf "%s-periodic-restart" (include "magout.fullname" .) }}
+{{- $anyEnabled := false }}
+{{- range $component := list "web" "sidekiq" "streaming" }}
+{{- $c := dig $component (dict) $pr | default (dict) }}
+{{- if $c.enabled }}
+{{- $anyEnabled = true }}
+{{- end }}
+{{- end }}
+{{- if $anyEnabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $saName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "magout.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $saName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "magout.labels" . | nindent 4 }}
+rules:
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $saName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "magout.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $saName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $saName }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- range $component := list "web" "sidekiq" "streaming" }}
+{{- $c := dig $component (dict) $pr | default (dict) }}
+{{- if and $c.enabled (dig $component "periodicRestart" "enabled" false $ms) }}
+{{- fail (printf "periodicRestart for %s is enabled both via .periodicRestart.%s.enabled and .mastodonServer.%s.periodicRestart.enabled; enable only one of them" $component $component $component) }}
+{{- end }}
+{{- if $c.enabled }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "magout.fullname" $ }}-periodic-restart-{{ $component }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "magout.labels" $ | nindent 4 }}
+spec:
+  concurrencyPolicy: Forbid
+  schedule: {{ $c.schedule | quote }}
+  {{- with $pr.timeZone }}
+  timeZone: {{ . | quote }}
+  {{- end }}
+  successfulJobsHistoryLimit: {{ $pr.successfulJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: magout-restart
+            app.kubernetes.io/component: {{ $component }}
+            app.kubernetes.io/part-of: mastodon
+            magout.anqou.net/mastodon-server: {{ include "magout.fullname" $ }}
+        spec:
+          serviceAccountName: {{ $saName }}
+          restartPolicy: Never
+          {{- with $pr.podSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $pr.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $pr.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $pr.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $pr.topologySpreadConstraints }}
+          topologySpreadConstraints:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: restart
+              image: {{ $pr.image | quote }}
+              env:
+                - name: HOME
+                  value: /tmp
+              args:
+                - rollout
+                - restart
+                - deployment/{{ include "magout.fullname" $ }}-{{ $component }}
+                - "-n"
+                - {{ $.Release.Namespace | quote }}
+              {{- with $pr.securityContext }}
+              securityContext:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+{{- end }}
+{{- end }}
