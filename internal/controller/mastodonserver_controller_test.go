@@ -74,6 +74,31 @@ var _ = Describe("MastodonServer Controller", func() {
 			streamingImageEncoded := "f1f6413ffb47c0eecdd38da773841a6932c50cfd75aa07dcee8afc25"
 			streamingImage2 := "streaming-image2"
 			streamingImage2Encoded := "85911d46f824a2df54e1c5e8774eaeb1ba6adf5b8e554fd9d2587109"
+			webNodeSelector := map[string]string{"magout.anqou.net/test": "true"}
+			webAffinity := corev1.Affinity{
+				NodeAffinity: &corev1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+						NodeSelectorTerms: []corev1.NodeSelectorTerm{
+							{
+								MatchExpressions: []corev1.NodeSelectorRequirement{
+									{
+										Key:      "kubernetes.io/arch",
+										Operator: corev1.NodeSelectorOpIn,
+										Values:   []string{"amd64"},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			webTolerations := []corev1.Toleration{
+				{
+					Key:      "magout.anqou.net/test-taint",
+					Operator: corev1.TolerationOpExists,
+					Effect:   corev1.TaintEffectNoSchedule,
+				},
+			}
 
 			controllerReconciler := controller.NewMastodonServerReconciler(
 				k8sClient,
@@ -87,6 +112,9 @@ var _ = Describe("MastodonServer Controller", func() {
 			server.SetName(mastodonServerName)
 			server.SetNamespace(namespace)
 			server.Spec.Web.Image = webImage
+			server.Spec.Web.NodeSelector = webNodeSelector
+			server.Spec.Web.Affinity = webAffinity
+			server.Spec.Web.Tolerations = webTolerations
 			server.Spec.Sidekiq.Image = sidekiqImage
 			server.Spec.Streaming.Image = streamingImage
 			err = k8sClient.Create(ctx, server)
@@ -120,6 +148,9 @@ var _ = Describe("MastodonServer Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(job.Spec.Template.Spec.Containers[0].Image).To(Equal(webImage))
 			Expect(job.Spec.Template.Spec.Containers[0].Env).To(BeNil())
+			Expect(job.Spec.Template.Spec.NodeSelector).To(Equal(webNodeSelector))
+			Expect(job.Spec.Template.Spec.Affinity).To(Equal(&webAffinity))
+			Expect(job.Spec.Template.Spec.Tolerations).To(Equal(webTolerations))
 
 			By("Making the post migration job completed")
 			job.Status.Succeeded = 1
@@ -213,6 +244,9 @@ var _ = Describe("MastodonServer Controller", func() {
 			Expect(job.Spec.Template.Spec.Containers[0].Image).To(Equal(webImage2))
 			Expect(job.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("SKIP_POST_DEPLOYMENT_MIGRATIONS"))
 			Expect(job.Spec.Template.Spec.Containers[0].Env[0].Value).To(Equal("true"))
+			Expect(job.Spec.Template.Spec.NodeSelector).To(Equal(webNodeSelector))
+			Expect(job.Spec.Template.Spec.Affinity).To(Equal(&webAffinity))
+			Expect(job.Spec.Template.Spec.Tolerations).To(Equal(webTolerations))
 
 			By("Making the pre migration job completed")
 			job.Status.Succeeded = 1

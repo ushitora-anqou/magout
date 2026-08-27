@@ -376,6 +376,9 @@ func (r *MastodonServerReconciler) createMigrationJob(
 	job.SetNamespace(server.GetNamespace())
 	job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyOnFailure
 	job.Spec.Template.Spec.SecurityContext = server.Spec.Web.PodSecurityContext
+	job.Spec.Template.Spec.NodeSelector = server.Spec.Web.NodeSelector
+	job.Spec.Template.Spec.Affinity = &server.Spec.Web.Affinity
+	job.Spec.Template.Spec.Tolerations = server.Spec.Web.Tolerations
 	job.Spec.Template.Spec.Containers = []corev1.Container{
 		{
 			Name:    "migration",
