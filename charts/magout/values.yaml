@@ -189,6 +189,10 @@ gateway:
       capabilities:
         drop:
           - ALL
+    nodeSelector: {}
+    affinity: {}
+    tolerations: []
+    topologySpreadConstraints: []
   service:
     type: ClusterIP
     port: 8080

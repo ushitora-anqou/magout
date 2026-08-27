@@ -24,6 +24,22 @@ spec:
     spec:
       securityContext:
         {{- toYaml .Values.gateway.deploy.podSecurityContext | nindent 8 }}
+      {{- with .Values.gateway.deploy.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.gateway.deploy.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.gateway.deploy.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.gateway.deploy.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       initContainers:
         - name: copy-assets
           image: {{ .Values.mastodonVersion.image }}
