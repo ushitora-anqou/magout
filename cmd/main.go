@@ -30,6 +30,15 @@ import (
 var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
+
+	metricsAddr          string
+	enableLeaderElection bool
+	probeAddr            string
+	secureMetrics        bool
+	enableHTTP2          bool
+	tlsOpts              []func(*tls.Config)
+	namespace            string
+	zapOpts              = zap.Options{Development: true}
 )
 
 func init() {
@@ -37,16 +46,7 @@ func init() {
 
 	utilruntime.Must(magoutv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
-}
 
-func mainController() error {
-	var metricsAddr string
-	var enableLeaderElection bool
-	var probeAddr string
-	var secureMetrics bool
-	var enableHTTP2 bool
-	var tlsOpts []func(*tls.Config)
-	var namespace string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -59,14 +59,11 @@ func mainController() error {
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
 	flag.StringVar(&namespace, "namespace", "",
 		"the magout operator should work for the MantleServer resources in the namespace.")
-	opts := zap.Options{
-		Development: true,
-	}
-	opts.BindFlags(flag.CommandLine)
-	//nolint:revive
-	flag.Parse()
+	zapOpts.BindFlags(flag.CommandLine)
+}
 
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+func mainController() error {
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&zapOpts)))
 
 	if namespace == "" {
 		return errors.New("specify namespace")
@@ -174,6 +171,8 @@ func mainController() error {
 }
 
 func main() {
+	flag.Parse()
+
 	if err := mainController(); err != nil {
 		slog.Error("subcommand controller failed", "error", err)
 		os.Exit(1)
